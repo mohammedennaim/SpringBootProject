@@ -1,21 +1,8 @@
-server:
-  port: 8080
-
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/digital_logistics_db
-    username: postgres
-    password: 1234
     driver-class-name: org.postgresql.Driver
 
   jpa:
-    database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
-      ddl-auto: update    # ?? dev? ???? ?????? update. ??prod ??? migration (Flyway)
-    show-sql: true        # ??? ???? ????????? ???console
-    properties:
-      hibernate:
-        format_sql: true
-
-  application:
-    name: digital-logistics
+      ddl-auto: update
+    show-sql: true
