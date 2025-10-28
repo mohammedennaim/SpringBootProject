@@ -14,6 +14,9 @@ COPY .mvn .mvn
 # Installer dépendances (cache Maven)
 RUN ./mvnw dependency:go-offline -B
 
+# Copier le code source
+COPY src ./src
+
 # Exposer port
 EXPOSE 8080
 

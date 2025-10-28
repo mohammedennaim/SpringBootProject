@@ -49,7 +49,6 @@ services:
       - logistics-net
     volumes:
       - .:/app
-      - /app/target
 
 volumes:
   pg_data:
