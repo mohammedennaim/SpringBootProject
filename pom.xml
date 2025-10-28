@@ -149,8 +149,17 @@
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
 				<configuration>
-					<mainClass>com.example.digitallogistics.DigitalLogisticsApplication</mainClass>
+					<mainClass>com.example.digitallogistics.LogisticsApiApplication</mainClass>
+					<fork>true</fork>
+					<addResources>true</addResources>
 				</configuration>
+				<executions>
+					<execution>
+						<goals>
+							<goal>repackage</goal>
+						</goals>
+					</execution>
+				</executions>
 			</plugin>
 
 		</plugins>
