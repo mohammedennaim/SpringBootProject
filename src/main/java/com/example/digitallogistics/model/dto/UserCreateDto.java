@@ -42,6 +42,19 @@ public class UserCreateDto {
         this.role = role;
     }
 
+    // Accept role as a case-insensitive String in JSON bodies (e.g. "client" -> Role.CLIENT)
+    public void setRole(String role) {
+        if (role == null) {
+            this.role = null;
+            return;
+        }
+        try {
+            this.role = Role.valueOf(role.trim().toUpperCase());
+        } catch (IllegalArgumentException ex) {
+            throw new IllegalArgumentException("Invalid role value: " + role + ". Allowed values: ADMIN, CLIENT, WAREHOUSE_MANAGER");
+        }
+    }
+
     public boolean isActive() {
         return active;
     }
