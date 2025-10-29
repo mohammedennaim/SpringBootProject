@@ -20,13 +20,17 @@ public class Client {
     @Column(name = "contact")
     private String contact;
 
+    @Column(name = "active")
+    private Boolean active;
+
     public Client() {
     }
 
-    public Client(Long id, String name, String contact) {
+    public Client(Long id, String name, String contact, Boolean active) {
         this.id = id;
         this.name = name;
         this.contact = contact;
+        this.active = active;
     }
 
     public Long getId() {
@@ -51,5 +55,13 @@ public class Client {
 
     public void setContact(String contact) {
         this.contact = contact;
+    }
+
+    public Boolean getActive() {
+        return active;
+    }
+
+    public void setActive(Boolean active) {
+        this.active = active;
     }
 }

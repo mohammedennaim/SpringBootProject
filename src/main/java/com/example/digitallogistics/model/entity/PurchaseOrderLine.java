@@ -21,6 +21,10 @@ public class PurchaseOrderLine {
     @JoinColumn(name = "product_id")
     private Product product;
 
+    @ManyToOne
+    @JoinColumn(name = "purchase_order_id")
+    private PurchaseOrder purchaseOrder;
+
     @Column(name = "quantity")
     private Integer quantity;
 
@@ -29,11 +33,12 @@ public class PurchaseOrderLine {
     public PurchaseOrderLine() {
     }
 
-    public PurchaseOrderLine(Long id, Product product, Integer quantity, BigDecimal unitPrice) {
+    public PurchaseOrderLine(Long id, Product product, Integer quantity, BigDecimal unitPrice, PurchaseOrder purchaseOrder) {
         this.id = id;
         this.product = product;
         this.quantity = quantity;
         this.unitPrice = unitPrice;
+        this.purchaseOrder = purchaseOrder;
     }
 
     public Long getId() {
@@ -50,6 +55,14 @@ public class PurchaseOrderLine {
 
     public void setProduct(Product product) {
         this.product = product;
+    }
+
+    public PurchaseOrder getPurchaseOrder() {
+        return purchaseOrder;
+    }
+
+    public void setPurchaseOrder(PurchaseOrder purchaseOrder) {
+        this.purchaseOrder = purchaseOrder;
     }
 
     public Integer getQuantity() {

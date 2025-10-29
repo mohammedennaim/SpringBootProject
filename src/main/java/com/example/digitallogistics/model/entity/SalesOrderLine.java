@@ -21,6 +21,10 @@ public class SalesOrderLine {
     @JoinColumn(name = "product_id")
     private Product product;
 
+    @ManyToOne
+    @JoinColumn(name = "sales_order_id")
+    private SalesOrder salesOrder;
+
     @Column(name = "quantity")
     private Integer quantity;
 
@@ -34,6 +38,15 @@ public class SalesOrderLine {
 
     public SalesOrderLine(Long id, Product product, Integer quantity, BigDecimal unitPrice, Boolean backorder) {
         this.id = id;
+        this.product = product;
+        this.quantity = quantity;
+        this.unitPrice = unitPrice;
+        this.backorder = backorder;
+    }
+
+    public SalesOrderLine(Long id, SalesOrder salesOrder, Product product, Integer quantity, BigDecimal unitPrice, Boolean backorder) {
+        this.id = id;
+        this.salesOrder = salesOrder;
         this.product = product;
         this.quantity = quantity;
         this.unitPrice = unitPrice;
@@ -54,6 +67,14 @@ public class SalesOrderLine {
 
     public void setProduct(Product product) {
         this.product = product;
+    }
+
+    public SalesOrder getSalesOrder() {
+        return salesOrder;
+    }
+
+    public void setSalesOrder(SalesOrder salesOrder) {
+        this.salesOrder = salesOrder;
     }
 
     public Integer getQuantity() {
