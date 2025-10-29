@@ -4,6 +4,8 @@ import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -19,6 +21,8 @@ public class JwtTokenProvider {
 
     private final Key key;
     private final long validityInMilliseconds;
+    // in-memory revoked tokens map (token -> expiry date). This keeps revocations until token would naturally expire.
+    private final Map<String, Date> revokedTokens = new ConcurrentHashMap<>();
 
     // HS256 requires a 256-bit (32-byte) key. If the configured secret is shorter, pad it deterministically.
     public JwtTokenProvider(@Value("${app.jwt.secret:defaultSecretKeyChangeMe}") String secret,
@@ -52,10 +56,29 @@ public class JwtTokenProvider {
 
     public boolean validateToken(String token) {
         try {
+            // cleanup expired revoked tokens opportunistically
+            Date now = new Date();
+            revokedTokens.entrySet().removeIf(e -> e.getValue().before(now));
+
+            // check revoked first
+            if (revokedTokens.containsKey(token)) {
+                return false;
+            }
+
             Jws<Claims> claims = Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);
-            return !claims.getBody().getExpiration().before(new Date());
+            return !claims.getBody().getExpiration().before(now);
         } catch (Exception ex) {
             return false;
+        }
+    }
+
+    public void revokeToken(String token) {
+        try {
+            Date expiry = Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).getBody().getExpiration();
+            revokedTokens.put(token, expiry == null ? new Date() : expiry);
+        } catch (Exception ex) {
+            // if token invalid/unparsable, still store a short-lived block to avoid reuse; set expiry to now
+            revokedTokens.put(token, new Date());
         }
     }
 
