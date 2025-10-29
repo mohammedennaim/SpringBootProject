@@ -1,6 +1,7 @@
 package com.example.digitallogistics.model.entity;
 
 import java.time.LocalDateTime;
+
 import com.example.digitallogistics.model.enums.MovementType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Enumerated;
@@ -18,9 +19,9 @@ public class InventoryMovement {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "movement_type")
+    @Column(name = "type")
     @Enumerated(EnumType.STRING)
-    private MovementType movementType;
+    private MovementType type;
 
     @Column(name = "quantity")
     private Integer quantity;
@@ -29,19 +30,19 @@ public class InventoryMovement {
     private LocalDateTime occurredAt;
 
     @Column(name = "reference_document")
-    private String referenceDocument;
+    private String reference;
 
     @Column(name = "description")
     private String description;
     public InventoryMovement() {
     }
 
-    public InventoryMovement(Long id, MovementType movementType, Integer quantity, LocalDateTime occurredAt, String referenceDocument, String description) {
+    public InventoryMovement(Long id, MovementType type, Integer quantity, LocalDateTime occurredAt, String reference, String description) {
         this.id = id;
-        this.movementType = movementType;
+        this.type = type;
         this.quantity = quantity;
         this.occurredAt = occurredAt;
-        this.referenceDocument = referenceDocument;
+        this.reference = reference;
         this.description = description;
     }
 
@@ -53,12 +54,12 @@ public class InventoryMovement {
         this.id = id;
     }
 
-    public MovementType getMovementType() {
-        return movementType;
+    public MovementType gettype() {
+        return type;
     }
 
-    public void setMovementType(MovementType movementType) {
-        this.movementType = movementType;
+    public void settype(MovementType type) {
+        this.type = type;
     }
 
     public Integer getQuantity() {
@@ -77,12 +78,12 @@ public class InventoryMovement {
         this.occurredAt = occurredAt;
     }
 
-    public String getReferenceDocument() {
-        return referenceDocument;
+    public String getReference() {
+        return reference;
     }
 
-    public void setReferenceDocument(String referenceDocument) {
-        this.referenceDocument = referenceDocument;
+    public void setReference(String reference) {
+        this.reference = reference;
     }
 
     public String getDescription() {

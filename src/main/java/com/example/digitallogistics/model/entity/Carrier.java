@@ -24,14 +24,14 @@ public class Carrier {
     @Column(name = "name")
     private String name;
 
-    @Column(name = "contact_email")
-    private String contactEmail;
+    @Column(name = "email")
+    private String email;
 
-    @Column(name = "contact_phone")
-    private String contactPhone;
+    @Column(name = "phone")
+    private String phone;
 
     @Column(name = "shipping_rate")
-    private BigDecimal shippingRate;
+    private BigDecimal rate;
 
     @Column(name = "max_daily_shipments")
     private Integer maxDailyShipments;
@@ -42,13 +42,13 @@ public class Carrier {
     public Carrier() {
     }
 
-    public Carrier(Long id, String code, String name, String contactEmail, String contactPhone, BigDecimal shippingRate, Integer maxDailyShipments, CarrierStatus status) {
+    public Carrier(Long id, String code, String name, String email, String phone, BigDecimal rate, Integer maxDailyShipments, CarrierStatus status) {
         this.id = id;
         this.code = code;
         this.name = name;
-        this.contactEmail = contactEmail;
-        this.contactPhone = contactPhone;
-        this.shippingRate = shippingRate;
+        this.email = email;
+        this.phone = phone;
+        this.rate = rate;
         this.maxDailyShipments = maxDailyShipments;
         this.status = status;
     }
@@ -77,28 +77,28 @@ public class Carrier {
         this.name = name;
     }
 
-    public String getContactEmail() {
-        return contactEmail;
+    public String getemail() {
+        return email;
     }
 
-    public void setContactEmail(String contactEmail) {
-        this.contactEmail = contactEmail;
+    public void setemail(String email) {
+        this.email = email;
     }
 
-    public String getContactPhone() {
-        return contactPhone;
+    public String getphone() {
+        return phone;
     }
 
-    public void setContactPhone(String contactPhone) {
-        this.contactPhone = contactPhone;
+    public void setphone(String phone) {
+        this.phone = phone;
     }
 
-    public BigDecimal getShippingRate() {
-        return shippingRate;
+    public BigDecimal getrate() {
+        return rate;
     }
 
-    public void setShippingRate(BigDecimal shippingRate) {
-        this.shippingRate = shippingRate;
+    public void setrate(BigDecimal rate) {
+        this.rate = rate;
     }
 
     public Integer getMaxDailyShipments() {
