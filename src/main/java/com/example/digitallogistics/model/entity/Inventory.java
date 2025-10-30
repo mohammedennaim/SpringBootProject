@@ -9,8 +9,19 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 @Entity
 @Table(name = "inventories")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class Inventory {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -29,54 +40,4 @@ public class Inventory {
 
     @Column(name = "qty_reserved")
     private Integer qtyReserved;
-    public Inventory() {
-    }
-
-    public Inventory(Long id, Warehouse warehouse, Product product, Integer qtyOnHand, Integer qtyReserved) {
-        this.id = id;
-        this.warehouse = warehouse;
-        this.product = product;
-        this.qtyOnHand = qtyOnHand;
-        this.qtyReserved = qtyReserved;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public Warehouse getWarehouse() {
-        return warehouse;
-    }
-
-    public void setWarehouse(Warehouse warehouse) {
-        this.warehouse = warehouse;
-    }
-
-    public Product getProduct() {
-        return product;
-    }
-
-    public void setProduct(Product product) {
-        this.product = product;
-    }
-
-    public Integer getQtyOnHand() {
-        return qtyOnHand;
-    }
-
-    public void setQtyOnHand(Integer qtyOnHand) {
-        this.qtyOnHand = qtyOnHand;
-    }
-
-    public Integer getQtyReserved() {
-        return qtyReserved;
-    }
-
-    public void setQtyReserved(Integer qtyReserved) {
-        this.qtyReserved = qtyReserved;
-    }
 }

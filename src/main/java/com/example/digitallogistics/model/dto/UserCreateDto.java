@@ -42,7 +42,6 @@ public class UserCreateDto {
         this.role = role;
     }
 
-    // Accept role as a case-insensitive String in JSON bodies (e.g. "client" -> Role.CLIENT)
     public void setRole(String role) {
         if (role == null) {
             this.role = null;
