@@ -1,11 +1,11 @@
 package com.example.digitallogistics.model.entity;
 
 import java.math.BigDecimal;
+import java.util.UUID;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
+import jakarta.persistence.PrePersist;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
@@ -24,8 +24,7 @@ import lombok.Setter;
 @Builder
 public class Product {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private UUID id;
 
     @Column(name = "sku")
     private String sku;
@@ -41,4 +40,11 @@ public class Product {
 
     @Column(name = "active")
     private Boolean active;
+
+    @PrePersist
+    public void ensureId() {
+        if (this.id == null) {
+            this.id = UUID.randomUUID();
+        }
+    }
 }

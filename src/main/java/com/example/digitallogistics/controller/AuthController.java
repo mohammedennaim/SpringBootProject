@@ -8,6 +8,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -16,12 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.example.digitallogistics.dto.AuthRequest;
 import com.example.digitallogistics.dto.AuthResponse;
 import com.example.digitallogistics.model.dto.UserCreateDto;
-import com.example.digitallogistics.model.dto.UserDto;
-import com.example.digitallogistics.model.entity.User;
-import com.example.digitallogistics.model.mapper.UserMapper;
-import com.example.digitallogistics.service.UserService;
 import com.example.digitallogistics.util.JwtTokenProvider;
-import com.example.digitallogistics.model.enums.Role;
 
 import jakarta.validation.Valid;
 
@@ -31,40 +27,58 @@ public class AuthController {
 
     private final AuthenticationManager authenticationManager;
     private final JwtTokenProvider tokenProvider;
-    private final UserService userService;
     private final PasswordEncoder passwordEncoder;
-    private final UserMapper userMapper;
+    private final JdbcTemplate jdbcTemplate;
 
     public AuthController(AuthenticationManager authenticationManager, JwtTokenProvider tokenProvider,
-                          UserService userService, PasswordEncoder passwordEncoder, UserMapper userMapper) {
+                          PasswordEncoder passwordEncoder, JdbcTemplate jdbcTemplate) {
         this.authenticationManager = authenticationManager;
         this.tokenProvider = tokenProvider;
-        this.userService = userService;
         this.passwordEncoder = passwordEncoder;
-        this.userMapper = userMapper;
+        this.jdbcTemplate = jdbcTemplate;
     }
 
     @PostMapping("/login")
-    public ResponseEntity<AuthResponse> login(@RequestBody @Valid AuthRequest req) {
-        Authentication auth = authenticationManager.authenticate(
-            new UsernamePasswordAuthenticationToken(req.getEmail(), req.getPassword())
-        );
+    public ResponseEntity<?> login(@RequestBody @Valid AuthRequest req) {
+        try {
+            Authentication auth = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(req.getEmail(), req.getPassword())
+            );
 
-        String token = tokenProvider.createToken(auth.getName());
-        return ResponseEntity.ok(new AuthResponse(token));
+            String token = tokenProvider.createToken(auth.getName());
+            return ResponseEntity.ok(new AuthResponse(token));
+        } catch (Exception ex) {
+            // unwrap to the root cause to provide the underlying SQL error when present
+            Throwable root = ex;
+            while (root.getCause() != null) root = root.getCause();
+            String message = root.getMessage() != null ? root.getMessage() : ex.getMessage();
+            return ResponseEntity.status(500).body(Map.of(
+                "error", "internal_error",
+                "message", message
+            ));
+        }
     }
 
     @PostMapping("/register")
-    public ResponseEntity<UserDto> register(@RequestBody @Valid UserCreateDto createDto) {
-        // Force registration to CLIENT role only (self-registration allowed only for clients)
-        createDto.setPassword(passwordEncoder.encode(createDto.getPassword()));
-        createDto.setRole("CLIENT");
-        User user = userMapper.toEntity(createDto);
-        // ensure role enum set explicitly in case mapper behaves differently
-        user.setRole(Role.CLIENT);
-        User saved = userService.create(user);
-        UserDto dto = userMapper.toDto(saved);
-        return ResponseEntity.ok(dto);
+    public ResponseEntity<?> register(@RequestBody @Valid UserCreateDto createDto) {
+        // Direct JDBC insert to avoid JPA loading of joined inheritance (workaround for schema mismatch)
+        java.util.UUID id = java.util.UUID.randomUUID();
+    String encoded = passwordEncoder.encode(createDto.getPassword());
+    String role = "CLIENT";
+    boolean active = true; // default active on registration
+
+    // include the discriminator column `user_type` to satisfy the NOT NULL constraint
+    jdbcTemplate.update(
+        "INSERT INTO users(id, email, password, role, active, user_type) VALUES (?::uuid, ?, ?, ?, ?, ?)",
+        id.toString(), createDto.getEmail(), encoded, role, active, role
+    );
+
+        return ResponseEntity.ok(Map.of(
+                "id", id.toString(),
+                "email", createDto.getEmail(),
+                "role", role,
+                "active", active
+        ));
     }
 
     @PostMapping("/logout")

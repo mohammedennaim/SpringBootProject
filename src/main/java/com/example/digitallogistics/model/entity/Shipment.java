@@ -1,6 +1,7 @@
 package com.example.digitallogistics.model.entity;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 import com.example.digitallogistics.model.enums.ShipmentStatus;
 
@@ -8,8 +9,7 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
+import jakarta.persistence.PrePersist;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
@@ -28,8 +28,7 @@ import lombok.Setter;
 @Builder
 public class Shipment {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private UUID id;
 
     @Column(name = "tracking_number")
     private String trackingNumber;
@@ -46,4 +45,11 @@ public class Shipment {
 
     @Column(name = "delivered_date")
     private LocalDateTime deliveredDate;
+
+    @PrePersist
+    public void ensureId() {
+        if (this.id == null) {
+            this.id = UUID.randomUUID();
+        }
+    }
 }

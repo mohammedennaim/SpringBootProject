@@ -1,11 +1,12 @@
 package com.example.digitallogistics.model.entity;
 
-import java.util.UUID;
+ 
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.PrimaryKeyJoinColumn;
 import jakarta.persistence.Table;
+import java.util.UUID;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

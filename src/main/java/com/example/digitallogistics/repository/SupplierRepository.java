@@ -1,9 +1,11 @@
 package com.example.digitallogistics.repository;
 
 import java.util.List;
+import java.util.UUID;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import com.example.digitallogistics.model.entity.Supplier;
 
-public interface SupplierRepository extends JpaRepository<Supplier, Long> {
+public interface SupplierRepository extends JpaRepository<Supplier, UUID> {
     List<Supplier> findByNameContainingIgnoreCase(String namePart);
 }
