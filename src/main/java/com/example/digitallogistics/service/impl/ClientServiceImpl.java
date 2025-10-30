@@ -8,22 +8,18 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.example.digitallogistics.model.entity.Client;
-import com.example.digitallogistics.model.entity.User;
 import com.example.digitallogistics.model.enums.Role;
 import com.example.digitallogistics.repository.ClientRepository;
 import com.example.digitallogistics.service.ClientService;
-import com.example.digitallogistics.service.UserService;
 
 @Service
 public class ClientServiceImpl implements ClientService {
 
     private final ClientRepository clientRepository;
-    private final UserService userService;
     private final PasswordEncoder passwordEncoder;
 
-    public ClientServiceImpl(ClientRepository clientRepository, UserService userService, PasswordEncoder passwordEncoder) {
+    public ClientServiceImpl(ClientRepository clientRepository, PasswordEncoder passwordEncoder) {
         this.clientRepository = clientRepository;
-        this.userService = userService;
         this.passwordEncoder = passwordEncoder;
     }
 
@@ -49,27 +45,23 @@ public class ClientServiceImpl implements ClientService {
 
     @Override
     public Client create(Client client) {
-        // ensure client has an id before save (entity also has @PrePersist, but keep defensive)
-        if (client.getId() == null) {
-            client.setId(UUID.randomUUID());
+        // With JPA inheritance a Client is also a User.
+        // Ensure required user fields are set before saving the Client.
+        if (client.getPassword() == null || client.getPassword().isBlank()) {
+            String raw = UUID.randomUUID().toString();
+            client.setPassword(passwordEncoder.encode(raw));
+        }
+        client.setRole(Role.CLIENT);
+        if (client.getActive() == null) {
+            client.setActive(true);
         }
 
-        Client saved = clientRepository.save(client);
-
-        UUID id = saved.getId();
-        if (id != null) {
-            if (userService.findById(id).isEmpty()) {
-                User u = new User();
-                String raw = UUID.randomUUID().toString();
-                u.setId(id);
-                u.setPassword(passwordEncoder.encode(raw));
-                u.setRole(Role.CLIENT);
-                u.setActive(Boolean.TRUE.equals(client.getActive()));
-                userService.create(u);
-            }
+        // If contact looks like an email we set it as the user's email
+        if (client.getContact() != null && client.getContact().contains("@") && client.getEmail() == null) {
+            client.setEmail(client.getContact());
         }
 
-        return saved;
+        return clientRepository.save(client);
     }
 
     @Override

@@ -1,5 +1,7 @@
 package com.example.digitallogistics.model.entity;
 
+import java.util.UUID;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.PrimaryKeyJoinColumn;
@@ -11,23 +13,19 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
- * Client extends User using JOINED inheritance. The user's id lives in the users table.
+ * Warehouse manager user. Extends base User (JOINED inheritance).
  */
 @Entity
-@Table(name = "clients")
+@Table(name = "managers")
 @PrimaryKeyJoinColumn(name = "id")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class Client extends User {
+public class Manager extends User {
 
-    @Column(name = "name")
-    private String name;
+    // Link to a warehouse this manager is responsible for (optional)
+    @Column(name = "warehouse_id")
+    private UUID warehouseId;
 
-    @Column(name = "contact")
-    private String contact;
-
-    @Column(name = "active")
-    private Boolean active;
 }

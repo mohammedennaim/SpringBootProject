@@ -11,23 +11,18 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
- * Client extends User using JOINED inheritance. The user's id lives in the users table.
+ * Admin user. Extends base User (JOINED inheritance).
  */
 @Entity
-@Table(name = "clients")
+@Table(name = "admins")
 @PrimaryKeyJoinColumn(name = "id")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class Client extends User {
+public class Admin extends User {
 
-    @Column(name = "name")
-    private String name;
+    @Column(name = "notes")
+    private String notes;
 
-    @Column(name = "contact")
-    private String contact;
-
-    @Column(name = "active")
-    private Boolean active;
 }
