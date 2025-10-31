@@ -49,7 +49,6 @@ public class AuthController {
             String token = tokenProvider.createToken(auth.getName(), auth.getAuthorities());
             return ResponseEntity.ok(new AuthResponse(token));
         } catch (Exception ex) {
-            // unwrap to the root cause to provide the underlying SQL error when present
             Throwable root = ex;
             while (root.getCause() != null) root = root.getCause();
             String message = root.getMessage() != null ? root.getMessage() : ex.getMessage();
@@ -62,13 +61,10 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody @Valid UserCreateDto createDto) {
-        // Use JPA/Hibernate: create a Client entity and save through the service/repository.
     Client client = new Client();
     client.setEmail(createDto.getEmail());
     client.setPassword(passwordEncoder.encode(createDto.getPassword()));
-    // ignore caller-supplied active flag — newly registered users are active by default
     client.setActive(true);
-    // set client-specific fields
     client.setName(createDto.getName());
     client.setContact(createDto.getContact());
 
@@ -88,13 +84,11 @@ public class AuthController {
 
     @PostMapping("/logout")
     public ResponseEntity<Void> logout(HttpServletRequest request, @RequestBody(required = false) Map<String, String> body) {
-        // Try Authorization header first
         String header = request.getHeader(HttpHeaders.AUTHORIZATION);
         String token = null;
         if (header != null && header.startsWith("Bearer ")) {
             token = header.substring(7);
         }
-        // fallback to request body { "token": "..." }
         if (token == null && body != null) {
             token = body.get("token");
         }

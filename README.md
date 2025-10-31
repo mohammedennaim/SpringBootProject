@@ -146,7 +146,7 @@ docker compose up --build
 
 ---
 
-Si vous voulez, je peux:
+Si vous voulez, je peux :
 - générer automatiquement un `README.md` plus détaillé avec tous les endpoints (tous les controllers), ou
 - modifier le Dockerfile pour produire une image basée sur le jar (stable) et adapter `docker-compose.yaml` (je peux appliquer ce changement et redéployer).
 
