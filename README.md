@@ -151,3 +151,5 @@ Si vous voulez, je peux:
 - modifier le Dockerfile pour produire une image basée sur le jar (stable) et adapter `docker-compose.yaml` (je peux appliquer ce changement et redéployer).
 
 Dites-moi quelle option vous préférez (générer plus de docs OU adapter Docker pour exécuter le jar). 
+
+test
