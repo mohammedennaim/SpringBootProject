@@ -24,10 +24,8 @@ public class JwtTokenProvider {
 
     private final Key key;
     private final long validityInMilliseconds;
-    // in-memory revoked tokens map (token -> expiry date). This keeps revocations until token would naturally expire.
     private final Map<String, Date> revokedTokens = new ConcurrentHashMap<>();
 
-    // HS256 requires a 256-bit (32-byte) key. If the configured secret is shorter, pad it deterministically.
     public JwtTokenProvider(@Value("${app.jwt.secret:defaultSecretKeyChangeMe}") String secret,
                             @Value("${app.jwt.expiration-ms:3600000}") long validityInMilliseconds) {
         byte[] bytes = secret == null ? new byte[0] : secret.getBytes(StandardCharsets.UTF_8);
