@@ -15,6 +15,9 @@ import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
+import java.util.Collection;
+import java.util.stream.Collectors;
+import org.springframework.security.core.GrantedAuthority;
 
 @Component
 public class JwtTokenProvider {
@@ -50,8 +53,28 @@ public class JwtTokenProvider {
                 .setSubject(subject)
                 .setIssuedAt(now)
                 .setExpiration(expiry)
-                .signWith(key, SignatureAlgorithm.HS256)
+        .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
+    }
+
+    /**
+     * Create a token including a 'roles' claim (comma-separated) for convenience.
+     */
+    public String createToken(String subject, Collection<? extends GrantedAuthority> authorities) {
+    Date now = new Date();
+    Date expiry = new Date(now.getTime() + validityInMilliseconds);
+
+    String roles = authorities == null ? "" : authorities.stream()
+        .map(GrantedAuthority::getAuthority)
+        .collect(Collectors.joining(","));
+
+    return Jwts.builder()
+        .setSubject(subject)
+        .claim("roles", roles)
+        .setIssuedAt(now)
+        .setExpiration(expiry)
+        .signWith(key, SignatureAlgorithm.HS256)
+        .compact();
     }
 
     public boolean validateToken(String token) {

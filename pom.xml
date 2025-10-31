@@ -177,7 +177,6 @@
 				<artifactId>spring-boot-maven-plugin</artifactId>
 				<configuration>
 					<mainClass>com.example.digitallogistics.LogisticsApiApplication</mainClass>
-					<fork>true</fork>
 					<addResources>true</addResources>
 				</configuration>
 				<executions>

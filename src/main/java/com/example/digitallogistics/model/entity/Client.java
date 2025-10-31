@@ -16,6 +16,7 @@ import lombok.Setter;
 @Entity
 @Table(name = "clients")
 @PrimaryKeyJoinColumn(name = "id")
+@jakarta.persistence.DiscriminatorValue("CLIENT")
 @Getter
 @Setter
 @NoArgsConstructor

@@ -45,7 +45,7 @@ public class AuthController {
                 new UsernamePasswordAuthenticationToken(req.getEmail(), req.getPassword())
             );
 
-            String token = tokenProvider.createToken(auth.getName());
+            String token = tokenProvider.createToken(auth.getName(), auth.getAuthorities());
             return ResponseEntity.ok(new AuthResponse(token));
         } catch (Exception ex) {
             // unwrap to the root cause to provide the underlying SQL error when present
@@ -65,7 +65,7 @@ public class AuthController {
         java.util.UUID id = java.util.UUID.randomUUID();
     String encoded = passwordEncoder.encode(createDto.getPassword());
     String role = "CLIENT";
-    boolean active = true; // default active on registration
+    boolean active = true;
 
     // include the discriminator column `user_type` to satisfy the NOT NULL constraint
     jdbcTemplate.update(

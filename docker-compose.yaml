@@ -43,7 +43,9 @@ services:
       SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
       SPRING_JPA_HIBERNATE_DDL_AUTO: ${SPRING_JPA_HIBERNATE_DDL_AUTO}
       SPRING_JPA_SHOW_SQL: ${SPRING_JPA_SHOW_SQL}
-      SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT: ${SPRING_JPA_DIALECT}
+  # Do not inject a Hibernate dialect via environment variables; modern Hibernate auto-detects the dialect.
+  # If you need to force a dialect for legacy reasons, set it in application.yml instead. Leaving this env var out
+  # prevents the deprecation warning HHH90000025.
     ports:
       - "${SERVER_PORT}:${SERVER_PORT}"
     networks:
