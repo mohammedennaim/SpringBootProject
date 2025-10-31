@@ -8,7 +8,8 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.jdbc.core.JdbcTemplate;
+import com.example.digitallogistics.service.UserService;
+import com.example.digitallogistics.model.entity.Client;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -28,14 +29,14 @@ public class AuthController {
     private final AuthenticationManager authenticationManager;
     private final JwtTokenProvider tokenProvider;
     private final PasswordEncoder passwordEncoder;
-    private final JdbcTemplate jdbcTemplate;
+    private final UserService userService;
 
     public AuthController(AuthenticationManager authenticationManager, JwtTokenProvider tokenProvider,
-                          PasswordEncoder passwordEncoder, JdbcTemplate jdbcTemplate) {
+                          PasswordEncoder passwordEncoder, UserService userService) {
         this.authenticationManager = authenticationManager;
         this.tokenProvider = tokenProvider;
         this.passwordEncoder = passwordEncoder;
-        this.jdbcTemplate = jdbcTemplate;
+        this.userService = userService;
     }
 
     @PostMapping("/login")
@@ -61,24 +62,28 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody @Valid UserCreateDto createDto) {
-        // Direct JDBC insert to avoid JPA loading of joined inheritance (workaround for schema mismatch)
-        java.util.UUID id = java.util.UUID.randomUUID();
-    String encoded = passwordEncoder.encode(createDto.getPassword());
-    String role = "CLIENT";
-    boolean active = true;
+        // Use JPA/Hibernate: create a Client entity and save through the service/repository.
+    Client client = new Client();
+    client.setEmail(createDto.getEmail());
+    client.setPassword(passwordEncoder.encode(createDto.getPassword()));
+    // ignore caller-supplied active flag — newly registered users are active by default
+    client.setActive(true);
+    // set client-specific fields
+    client.setName(createDto.getName());
+    client.setContact(createDto.getContact());
 
-    // include the discriminator column `user_type` to satisfy the NOT NULL constraint
-    jdbcTemplate.update(
-        "INSERT INTO users(id, email, password, role, active, user_type) VALUES (?::uuid, ?, ?, ?, ?, ?)",
-        id.toString(), createDto.getEmail(), encoded, role, active, role
-    );
+        Client saved = (Client) userService.create(client);
 
-        return ResponseEntity.ok(Map.of(
-                "id", id.toString(),
-                "email", createDto.getEmail(),
-                "role", role,
-                "active", active
-        ));
+    return ResponseEntity.ok(Map.of(
+        "id", saved.getId().toString(),
+        "name", saved.getName(),
+        "email", saved.getEmail(),
+        "contact", saved.getContact(),
+        "role", saved.getRole().name(),
+        "active", saved.isActive()
+        
+        
+    ));
     }
 
     @PostMapping("/logout")

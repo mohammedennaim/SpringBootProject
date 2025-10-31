@@ -6,16 +6,23 @@ public class UserCreateDto {
     private String email;
     private String password;
     private Role role;
-    private boolean active;
+    // Make active nullable so we can use default=true when not provided by client
+    private Boolean active = true;
+    // New fields for Client creation
+    private String name;
+    private String contact;
 
     public UserCreateDto() {
     }
 
-    public UserCreateDto(String email, String password, Role role, boolean active) {
+
+    public UserCreateDto(String email, String password, Role role, Boolean active, String name, String contact) {
         this.email = email;
         this.password = password;
         this.role = role;
         this.active = active;
+        this.name = name;
+        this.contact = contact;
     }
 
     public String getEmail() {
@@ -54,11 +61,27 @@ public class UserCreateDto {
         }
     }
 
-    public boolean isActive() {
+    public Boolean getActive() {
         return active;
     }
 
-    public void setActive(boolean active) {
+    public void setActive(Boolean active) {
         this.active = active;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getContact() {
+        return contact;
+    }
+
+    public void setContact(String contact) {
+        this.contact = contact;
     }
 }
