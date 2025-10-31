@@ -152,4 +152,4 @@ Si vous voulez, je peux:
 
 Dites-moi quelle option vous préférez (générer plus de docs OU adapter Docker pour exécuter le jar). 
 
-test automatisation
+test2 automatisation
