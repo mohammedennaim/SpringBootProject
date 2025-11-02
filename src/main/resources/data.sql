@@ -16,18 +16,23 @@ CREATE TABLE IF NOT EXISTS users (
     active BOOLEAN DEFAULT TRUE
 );
 
-INSERT INTO users (email, password, role)
+INSERT INTO users (email, password, role, active)
 VALUES
-  -- adminpass
-  ('admin1@system.com', '$2b$10$z6mFHYFzC/.eXP.0L7.5gOx2H7FtKwbZzR9pMjeGmJmiakmu8vw22', 'ADMIN'),
-  -- managerpass
-  ('manager1@system.com', '$2b$10$znfuXk12.DzMhlADzTtOmev72kydv0ADBNigP/GpY4mYtC5BPNkFC', 'WAREHOUSE_MANAGER'),
-  -- pass123
-  ('client1@system.com', '$2b$10$6.BH7l4zHHoU44cf.3L.gO1XGpjM3a4zBoZHyHqEmkKyZ0pUHTH0W', 'CLIENT'),
-  -- pass456
-  ('client2@system.com', '$2b$10$Jpuzw7W7y0OyOKUPU0KBOuPVzvKQumUb1kmlD.9gZb3nQ6kGeUTfW', 'CLIENT'),
-  -- pass789
-  ('client3@system.com', '$2b$10$eQYFtZZYdVf6sUz4dk/16OIf/Z/.I7UujSc5pVhTkDcpRHRFXg1iC', 'CLIENT');
+    -- adminpass
+    ('admin1@system.com', '$2b$12$SOSkZ5.7N/yDRk98mWh8vODelmKDl8Rf4IQ1A1Y2sQmiabKqUnAEe', 'ADMIN', TRUE),
+    -- managerpass
+    ('manager1@system.com', '$2b$12$jQhrmF9Q9kzmwK3NLuLWvuvsXN9wzBt9/bZU6S7blMeN0qNeJQOqa', 'WAREHOUSE_MANAGER', TRUE),
+    -- pass123
+    ('client1@system.com', '$2b$12$E.KK5idmjKgMm5Udin8LwemDQYPVP4Y41jTG1xYlNdBEuVDGZ7BdK', 'CLIENT', TRUE),
+    -- pass456
+    ('client2@system.com', '$2b$12$A9E3GMyUSqSPloLwsmTmL.w2i/QZQBC5Yvu2kDRP6dDDu4no03nxC', 'CLIENT', TRUE),
+    -- pass789
+    ('client3@system.com', '$2b$12$TL9C8rgl5NSiroGZ1ynsxO.zoUu6UaWcsz2EKLm4lrmUiURzaa./q', 'CLIENT', TRUE)
+ON CONFLICT (email) DO UPDATE
+SET password = EXCLUDED.password,
+        role = EXCLUDED.role,
+        active = EXCLUDED.active;
+-- Make users inserts idempotent: skip if same email exists
 
 -- Clients
 CREATE TABLE IF NOT EXISTS clients (
@@ -54,12 +59,11 @@ CREATE TABLE IF NOT EXISTS admins (
 );
 
 -- Only create admin rows for existing users to respect FK constraints
-INSERT INTO
-    admins (id, notes)
-SELECT id, 'Super admin'
-FROM users
-WHERE
-    email = 'admin1@system.com';
+INSERT INTO admins (id, notes)
+SELECT u.id, 'Super admin'
+FROM users u
+WHERE u.email = 'admin1@system.com'
+  AND NOT EXISTS (SELECT 1 FROM admins a WHERE a.id = u.id);
 
 -- Warehouses
 CREATE TABLE IF NOT EXISTS warehouses (
@@ -87,6 +91,10 @@ VALUES (
         TRUE
     );
 
+-- Ensure we don't create duplicate warehouses by making code unique
+CREATE UNIQUE INDEX IF NOT EXISTS idx_warehouses_code ON warehouses(code);
+-- Make warehouses insert idempotent via unique index (above)
+
 -- Managers
 CREATE TABLE IF NOT EXISTS managers (
     id UUID PRIMARY KEY,
@@ -96,17 +104,12 @@ CREATE TABLE IF NOT EXISTS managers (
 );
 
 -- Only create manager rows for existing users
-INSERT INTO
-    managers (id, warehouse_id)
-SELECT id, (
-        SELECT id
-        FROM warehouses
-        WHERE
-            code = 'MAIN'
-    )
-FROM users
-WHERE
-    email = 'manager1@system.com';
+INSERT INTO managers (id, warehouse_id)
+SELECT u.id, w.id
+FROM users u
+JOIN warehouses w ON w.code = 'MAIN'
+WHERE u.email = 'manager1@system.com'
+  AND NOT EXISTS (SELECT 1 FROM managers m WHERE m.id = u.id);
 
 -- Suppliers
 CREATE TABLE IF NOT EXISTS suppliers (
@@ -129,6 +132,9 @@ VALUES (
         'Supplier Three',
         'supplier3@example.com'
     );
+
+-- Make supplier names unique to allow idempotent inserts
+CREATE UNIQUE INDEX IF NOT EXISTS idx_suppliers_name ON suppliers(name);
 
 -- Carriers
 CREATE TABLE IF NOT EXISTS carriers (
@@ -186,6 +192,9 @@ VALUES (
         'INACTIVE'
     );
 
+-- Make carrier code unique so repeated runs don't create duplicates
+CREATE UNIQUE INDEX IF NOT EXISTS idx_carriers_code ON carriers(code);
+
 -- Products
 CREATE TABLE IF NOT EXISTS products (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid (),
@@ -225,6 +234,9 @@ VALUES (
         75.00,
         TRUE
     );
+
+-- Make product SKU unique to allow idempotent inserts
+CREATE UNIQUE INDEX IF NOT EXISTS idx_products_sku ON products(sku);
 
 -- Inventories
 CREATE TABLE IF NOT EXISTS inventories (
@@ -394,7 +406,4 @@ VALUES
   ((SELECT id FROM sales_orders ORDER BY id OFFSET 2 LIMIT 1), (SELECT id FROM warehouses WHERE code='EAST' LIMIT 1), (SELECT id FROM carriers WHERE code='CARR-003' LIMIT 1), 'DELIVERED', 'TRK-003')
 ON CONFLICT DO NOTHING;
 
-COMMIT;-- =================================================
--- 0. Extension UUID
--- =================================================
 COMMIT;
