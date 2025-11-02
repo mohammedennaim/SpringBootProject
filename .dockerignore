@@ -1,0 +1,45 @@
+# Ignore OS, editor and IDE files
+.DS_Store
+.idea/
+.vscode/
+*.iml
+
+# Git and CI
+.git
+.gitignore
+
+# Java build artifacts
+target/
+*.class
+*.jar
+*.war
+
+# Maven wrapper and local maven repository
+.mvn/
+/.mvn
+
+# Node / frontend (if present)
+node_modules/
+dist/
+
+# Local env and secrets
+.env
+.env.local
+secrets/
+
+# Logs
+logs/
+*.log
+
+# Docker
+docker-compose.override.yml
+
+# Avoid packaging IDE config and local mounts
+.classpath
+.project
+.settings/
+
+# Ignore temporary files
+tmp/
+*.tmp
+*~
