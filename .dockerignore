@@ -15,8 +15,7 @@ target/
 *.war
 
 # Maven wrapper and local maven repository
-.mvn/
-/.mvn
+# Note: keep the project .mvn directory in the build context so Docker can use the wrapper
 
 # Node / frontend (if present)
 node_modules/
