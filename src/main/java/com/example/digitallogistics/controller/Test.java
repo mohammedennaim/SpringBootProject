@@ -8,6 +8,6 @@ public class Test {
 
     @GetMapping("/api/test")
     public String testApi() {
-        return "✅ API is working";
+        return "✅ API is working !";
     }
 }

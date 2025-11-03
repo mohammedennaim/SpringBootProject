@@ -1,24 +1,35 @@
-# =====================================================
-# Développement Dockerfile — live reload support
-# =====================================================
+###############################
+# Build stage
+###############################
+FROM eclipse-temurin:17-jdk-alpine AS build
 
-FROM eclipse-temurin:17-jdk-alpine
-
-# Définir dossier de travail
 WORKDIR /app
 
-# Copier uniquement fichiers Maven (pas le code source)
+# Copy Maven wrapper and pom first to leverage layer caching
 COPY pom.xml mvnw ./
 COPY .mvn .mvn
 
-# Installer dépendances (cache Maven)
+# Pre-download dependencies
 RUN ./mvnw dependency:go-offline -B
 
-# Copier le code source
+# Copy application sources
 COPY src ./src
 
-# Exposer port
-EXPOSE 8080
+# Build the Spring Boot jar (tests skipped for faster Docker builds)
+RUN ./mvnw package -DskipTests
 
-# Commande pour lancer Spring Boot en mode dev avec live reload
-CMD ["./mvnw", "spring-boot:run", "-Dspring-boot.run.fork=false"]
+###############################
+# Runtime stage
+###############################
+FROM eclipse-temurin:17-jre-alpine
+
+WORKDIR /app
+
+# Copy the fat jar from the build stage
+COPY --from=build /app/target/digital-logistics-*.jar app.jar
+
+# Align with application's default port (overridable via SERVER_PORT env)
+EXPOSE 8090
+
+# Run the packaged Spring Boot application
+ENTRYPOINT ["java","-jar","/app/app.jar"]
