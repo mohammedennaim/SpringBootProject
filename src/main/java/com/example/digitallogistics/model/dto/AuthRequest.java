@@ -1,4 +1,4 @@
-package com.example.digitallogistics.dto;
+package com.example.digitallogistics.model.dto;
 
 public class AuthRequest {
     private String email;

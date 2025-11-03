@@ -15,8 +15,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.example.digitallogistics.dto.AuthRequest;
-import com.example.digitallogistics.dto.AuthResponse;
+import com.example.digitallogistics.model.dto.AuthRequest;
+import com.example.digitallogistics.model.dto.AuthResponse;
 import com.example.digitallogistics.model.dto.UserCreateDto;
 import com.example.digitallogistics.util.JwtTokenProvider;
 
