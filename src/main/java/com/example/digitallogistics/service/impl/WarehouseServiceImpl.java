@@ -55,7 +55,6 @@ public class WarehouseServiceImpl implements WarehouseService {
 
     @Override
     public void deleteById(UUID id) {
-        // Soft delete - just set active to false
         Optional<Warehouse> warehouse = warehouseRepository.findById(id);
         if (warehouse.isPresent()) {
             Warehouse w = warehouse.get();

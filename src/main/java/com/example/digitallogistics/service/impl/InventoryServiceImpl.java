@@ -62,13 +62,11 @@ public class InventoryServiceImpl implements InventoryService {
         Optional<Inventory> existingInventory = findByWarehouseAndProduct(warehouseId, productId);
         
         if (existingInventory.isPresent()) {
-            // Update existing inventory
             Inventory inventory = existingInventory.get();
             int currentQty = inventory.getQtyOnHand() != null ? inventory.getQtyOnHand() : 0;
             inventory.setQtyOnHand(currentQty + adjustmentQty);
             return inventoryRepository.save(inventory);
         } else {
-            // Create new inventory record
             Optional<Warehouse> warehouse = warehouseRepository.findById(warehouseId);
             Optional<Product> product = productRepository.findById(productId);
             

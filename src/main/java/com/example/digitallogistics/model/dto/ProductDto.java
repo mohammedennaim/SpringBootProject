@@ -1,44 +1,15 @@
-package com.example.digitallogistics.model.entity;
-
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.PrePersist;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+package com.example.digitallogistics.model.dto;
 
 import java.math.BigDecimal;
 import java.util.UUID;
 
-@Entity
-@Table(name = "products")
-public class Product {
-    @Id
+public class ProductDto {
     private UUID id;
-
-    @Column(name = "sku", unique = true)
     private String sku;
-
-    @Column(name = "name", nullable = false)
     private String name;
-
-    @Column(name = "category")
     private String category;
-
-    @Column(name = "unit_price", precision = 10, scale = 2)
     private BigDecimal unitPrice;
-
-    @Column(name = "active", nullable = false)
-    private boolean active = true;
-
-    public Product() {
-    }
-
-    @PrePersist
-    public void ensureId() {
-        if (this.id == null) {
-            this.id = UUID.randomUUID();
-        }
-    }
+    private boolean active;
 
     public UUID getId() {
         return id;
