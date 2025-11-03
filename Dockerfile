@@ -32,4 +32,4 @@ COPY --from=build /app/target/digital-logistics-*.jar app.jar
 EXPOSE 8090
 
 # Run the packaged Spring Boot application
-ENTRYPOINT ["java","-jar","/app/app.jar"]
+ENTRYPOINT ["java","-jar"]

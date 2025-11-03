@@ -40,7 +40,7 @@ public class WarehouseController {
 
     // GET /api/warehouses - Liste des entrepôts
     @GetMapping
-    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER')")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('WAREHOUSE_MANAGER')")
     public List<WarehouseDto> list() {
         return warehouseService.findAll().stream()
                 .map(warehouseMapper::toDto)
@@ -49,7 +49,7 @@ public class WarehouseController {
 
     // POST /api/warehouses - Création d'un entrepôt
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER')")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('WAREHOUSE_MANAGER')")
     public ResponseEntity<WarehouseDto> create(@RequestBody @Valid WarehouseCreateDto createDto) {
         Warehouse warehouse = warehouseMapper.toEntity(createDto);
         // Set default active status if not provided
@@ -63,7 +63,7 @@ public class WarehouseController {
 
     // GET /api/warehouses/{id} - Détails d'un entrepôt
     @GetMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER')")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('WAREHOUSE_MANAGER')")
     public ResponseEntity<WarehouseDto> get(@PathVariable UUID id) {
         Optional<Warehouse> warehouse = warehouseService.findById(id);
         if (warehouse.isEmpty()) {
@@ -74,7 +74,7 @@ public class WarehouseController {
 
     // PUT /api/warehouses/{id} - Mise à jour
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER')")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('WAREHOUSE_MANAGER')")
     public ResponseEntity<WarehouseDto> update(@PathVariable UUID id, @RequestBody @Valid WarehouseUpdateDto updateDto) {
         Optional<Warehouse> existing = warehouseService.findById(id);
         if (existing.isEmpty()) {
@@ -93,7 +93,7 @@ public class WarehouseController {
 
     // DELETE /api/warehouses/{id} - Suppression / désactivation
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER')")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('WAREHOUSE_MANAGER')")
     public ResponseEntity<Void> delete(@PathVariable UUID id) {
         Optional<Warehouse> warehouse = warehouseService.findById(id);
         if (warehouse.isEmpty()) {
