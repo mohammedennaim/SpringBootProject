@@ -1,7 +1,6 @@
 package com.example.digitallogistics.service.impl;
 
 import com.example.digitallogistics.model.dto.*;
-import com.example.digitallogistics.model.enums.MovementType;
 import com.example.digitallogistics.service.ReportService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -9,13 +8,9 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
-/**
- * Implémentation du service de génération de rapports
- */
 @Service
 @RequiredArgsConstructor
 public class ReportServiceImpl implements ReportService {
@@ -28,7 +23,6 @@ public class ReportServiceImpl implements ReportService {
         LocalDate endDate = toDate != null ? toDate : LocalDate.now();
         
         try {
-            // Simulation des données - En production, utiliser les vraies requêtes
             OrderReportDto report = new OrderReportDto();
 
             report.setTotalOrders(150L);
@@ -47,7 +41,6 @@ public class ReportServiceImpl implements ReportService {
             report.setPendingRevenue(new BigDecimal("18500.00"));
             report.setAverageProcessingTimeHours(24.5);
             report.setAverageShippingTimeHours(48.2);
-            // Dates du rapport
             report.setFromDate(startDate);
             report.setToDate(endDate);
             
@@ -69,11 +62,9 @@ public class ReportServiceImpl implements ReportService {
             report.setOutOfStockProducts(15L);
             report.setLowStockProducts(35L);
             report.setOverstockedProducts(25L);
-
             report.setTotalInventoryValue(new BigDecimal("890000.00"));
             report.setLowStockValue(new BigDecimal("45000.00"));
             report.setOverstockValue(new BigDecimal("125000.00"));
-
             report.setStockTurnoverRate(4.2);
             report.setStockoutRate(6.0);
             report.setFillRate(94.0);
@@ -119,7 +110,6 @@ public class ReportServiceImpl implements ReportService {
     
     @Override
     public ShipmentReportDto getShipmentReport(LocalDate fromDate, LocalDate toDate, UUID carrierId) {
-        // Définir les dates par défaut
         LocalDate startDate = fromDate != null ? fromDate : LocalDate.now().minusDays(30);
         LocalDate endDate = toDate != null ? toDate : LocalDate.now();
         
@@ -163,13 +153,10 @@ public class ReportServiceImpl implements ReportService {
                 new ShipmentReportDto.DestinationSummary("Marrakech", "Maroc", 20L, 48.1, 85.0)
             );
             report.setTopDestinations(topDestinations);
-            
-            // Dates du rapport
             report.setFromDate(startDate);
             report.setToDate(endDate);
             
-            return report;
-            
+            return report; 
         } catch (Exception e) {
             throw new RuntimeException("Failed to generate shipment report", e);
         }

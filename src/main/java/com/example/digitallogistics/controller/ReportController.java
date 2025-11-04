@@ -1,7 +1,6 @@
 package com.example.digitallogistics.controller;
 
 import com.example.digitallogistics.model.dto.*;
-import com.example.digitallogistics.model.enums.MovementType;
 import com.example.digitallogistics.service.ReportService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -17,12 +16,8 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.UUID;
 
-/**
- * Contrôleur pour les rapports et statistiques
- */
 @RestController
 @RequestMapping("/api/reports")
 @RequiredArgsConstructor
