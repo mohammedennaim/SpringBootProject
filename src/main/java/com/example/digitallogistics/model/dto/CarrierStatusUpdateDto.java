@@ -1,10 +1,8 @@
 package com.example.digitallogistics.model.dto;
 
-import java.math.BigDecimal;
-import java.util.UUID;
-
 import com.example.digitallogistics.model.enums.CarrierStatus;
 
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -14,14 +12,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class CarrierDto {
+public class CarrierStatusUpdateDto {
     
-    private UUID id;
-    private String code;
-    private String name;
-    private String email;
-    private String phone;
-    private BigDecimal rate;
-    private Integer maxDailyShipments;
+    @NotNull(message = "Status is required")
     private CarrierStatus status;
 }
