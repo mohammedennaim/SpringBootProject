@@ -1,0 +1,65 @@
+package com.example.digitallogistics.controller;
+
+import com.example.digitallogistics.model.dto.ClientCreateDto;
+import com.example.digitallogistics.model.dto.ClientDto;
+import com.example.digitallogistics.model.entity.Client;
+import com.example.digitallogistics.model.mapper.ClientMapper;
+import com.example.digitallogistics.service.ClientService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
+
+import javax.validation.Valid;
+import java.util.Optional;
+import java.util.UUID;
+
+@RestController
+@RequestMapping("/api/clients")
+@Tag(name = "Clients", description = "API de gestion des clients")
+public class ClientController {
+
+    @Autowired
+    private ClientService clientService;
+
+    @Autowired
+    private ClientMapper clientMapper;
+
+    @PostMapping
+    @Operation(summary = "Créer un nouveau client")
+    @PreAuthorize("hasAnyRole('ADMIN', 'WAREHOUSE_MANAGER')")
+    public ResponseEntity<ClientDto> createClient(@Valid @RequestBody ClientCreateDto clientCreateDto) {
+        Client client = clientMapper.toEntity(clientCreateDto);
+        Client createdClient = clientService.create(client);
+        ClientDto clientDto = clientMapper.toDto(createdClient);
+        return new ResponseEntity<>(clientDto, HttpStatus.CREATED);
+    }
+
+    @GetMapping("/{id}")
+    @Operation(summary = "Obtenir les détails d'un client")
+    @PreAuthorize("hasAnyRole('ADMIN', 'WAREHOUSE_MANAGER', 'DRIVER')")
+    public ResponseEntity<ClientDto> getClientById(@PathVariable UUID id) {
+        Optional<Client> client = clientService.findById(id);
+        if (client.isPresent()) {
+            ClientDto clientDto = clientMapper.toDto(client.get());
+            return ResponseEntity.ok(clientDto);
+        }
+        return ResponseEntity.notFound().build();
+    }
+
+    @PutMapping("/{id}")
+    @Operation(summary = "Mettre à jour les informations d'un client")
+    @PreAuthorize("hasAnyRole('ADMIN', 'WAREHOUSE_MANAGER')")
+    public ResponseEntity<ClientDto> updateClient(@PathVariable UUID id, @Valid @RequestBody ClientCreateDto clientCreateDto) {
+        Client client = clientMapper.toEntity(clientCreateDto);
+        Optional<Client> updatedClient = clientService.update(id, client);
+        if (updatedClient.isPresent()) {
+            ClientDto clientDto = clientMapper.toDto(updatedClient.get());
+            return ResponseEntity.ok(clientDto);
+        }
+        return ResponseEntity.notFound().build();
+    }
+}
