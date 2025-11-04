@@ -4,8 +4,11 @@ import com.example.digitallogistics.model.dto.ManagerCreateDto;
 import com.example.digitallogistics.model.dto.ManagerDto;
 import com.example.digitallogistics.model.dto.ManagerUpdateDto;
 import com.example.digitallogistics.model.entity.Manager;
+import com.example.digitallogistics.model.entity.Warehouse;
 import com.example.digitallogistics.model.enums.Role;
 import org.springframework.stereotype.Component;
+
+import java.util.stream.Collectors;
 
 @Component
 public class ManagerMapper {
@@ -18,7 +21,16 @@ public class ManagerMapper {
         ManagerDto dto = new ManagerDto();
         dto.setId(manager.getId());
         dto.setEmail(manager.getEmail());
-        dto.setWarehouseId(manager.getWarehouseId());
+        
+        // Mapper les IDs des entrepôts gérés par ce manager
+        if (manager.getWarehouses() != null) {
+            dto.setWarehouseIds(
+                manager.getWarehouses().stream()
+                    .map(Warehouse::getId)
+                    .collect(Collectors.toList())
+            );
+        }
+        
         dto.setActive(manager.isActive());
         return dto;
     }
@@ -31,9 +43,10 @@ public class ManagerMapper {
         Manager manager = new Manager();
         manager.setEmail(managerCreateDto.getEmail());
         manager.setPassword(managerCreateDto.getPassword());
-        manager.setWarehouseId(managerCreateDto.getWarehouseId());
         manager.setActive(managerCreateDto.getActive() != null ? managerCreateDto.getActive() : true);
         manager.setRole(Role.WAREHOUSE_MANAGER);
+        
+        // Les entrepôts seront associés dans le service
         return manager;
     }
 
@@ -48,9 +61,7 @@ public class ManagerMapper {
         if (managerUpdateDto.getPassword() != null) {
             manager.setPassword(managerUpdateDto.getPassword());
         }
-        if (managerUpdateDto.getWarehouseId() != null) {
-            manager.setWarehouseId(managerUpdateDto.getWarehouseId());
-        }
+        // Les entrepôts seront gérés dans le service
         if (managerUpdateDto.getActive() != null) {
             manager.setActive(managerUpdateDto.getActive());
         }

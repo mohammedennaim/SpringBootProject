@@ -48,12 +48,18 @@ services:
       - "${SERVER_PORT}:${SERVER_PORT}"
     networks:
       - logistics-net
+    # Mount the project into /workspace for a dev workflow and keep the image's /app free
+    # so the packaged JAR inside the image is not hidden by a host bind mount.
+    working_dir: /workspace
+    command: ./mvnw spring-boot:run
     volumes:
-      - .:/app
+      - .:/workspace:rw
+      - maven_repo:/root/.m2:rw
 
 volumes:
   pg_data:
   pgadmin_data:
+  maven_repo:
 
 networks:
   logistics-net:

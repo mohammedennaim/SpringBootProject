@@ -124,4 +124,61 @@ public class ManagerController {
         }
         return ResponseEntity.notFound().build();
     }
+
+    @PostMapping("/{managerId}/warehouses/{warehouseId}")
+    @Operation(summary = "Assigner un entrepôt à un manager")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ManagerDto> assignWarehouse(
+            @PathVariable UUID managerId, 
+            @PathVariable UUID warehouseId) {
+        try {
+            ((com.example.digitallogistics.service.impl.ManagerServiceImpl) managerService)
+                .assignWarehouse(managerId, warehouseId);
+            Optional<Manager> updatedManager = managerService.findById(managerId);
+            if (updatedManager.isPresent()) {
+                return ResponseEntity.ok(managerMapper.toDto(updatedManager.get()));
+            }
+            return ResponseEntity.notFound().build();
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    @DeleteMapping("/{managerId}/warehouses/{warehouseId}")
+    @Operation(summary = "Retirer un entrepôt d'un manager")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ManagerDto> removeWarehouse(
+            @PathVariable UUID managerId, 
+            @PathVariable UUID warehouseId) {
+        try {
+            ((com.example.digitallogistics.service.impl.ManagerServiceImpl) managerService)
+                .removeWarehouse(managerId, warehouseId);
+            Optional<Manager> updatedManager = managerService.findById(managerId);
+            if (updatedManager.isPresent()) {
+                return ResponseEntity.ok(managerMapper.toDto(updatedManager.get()));
+            }
+            return ResponseEntity.notFound().build();
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    @PostMapping("/{managerId}/warehouses/batch")
+    @Operation(summary = "Assigner plusieurs entrepôts à un manager")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ManagerDto> assignWarehouses(
+            @PathVariable UUID managerId, 
+            @RequestBody List<UUID> warehouseIds) {
+        try {
+            ((com.example.digitallogistics.service.impl.ManagerServiceImpl) managerService)
+                .assignWarehouses(managerId, warehouseIds);
+            Optional<Manager> updatedManager = managerService.findById(managerId);
+            if (updatedManager.isPresent()) {
+                return ResponseEntity.ok(managerMapper.toDto(updatedManager.get()));
+            }
+            return ResponseEntity.notFound().build();
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
 }

@@ -1,10 +1,6 @@
 package com.example.digitallogistics.model.entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.PrePersist;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -13,6 +9,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.util.UUID;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Entity
 @Table(name = "warehouses")
@@ -33,6 +31,12 @@ public class Warehouse {
 
     @Column(name = "active")
     private Boolean active;
+
+    // Relation ManyToOne avec Manager : plusieurs entrepôts peuvent être gérés par un manager
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "manager_id")
+    @JsonIgnore  // Éviter la sérialisation circulaire
+    private Manager manager;
 
     @PrePersist
     public void ensureId() {

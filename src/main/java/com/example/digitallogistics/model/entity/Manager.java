@@ -1,12 +1,8 @@
 package com.example.digitallogistics.model.entity;
 
- 
-
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.PrimaryKeyJoinColumn;
-import jakarta.persistence.Table;
-import java.util.UUID;
+import jakarta.persistence.*;
+import java.util.ArrayList;
+import java.util.List;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -15,6 +11,7 @@ import lombok.Setter;
 
 /**
  * Warehouse manager user. Extends base User (JOINED inheritance).
+ * Un manager peut gérer plusieurs entrepôts (One-to-Many).
  */
 @Entity
 @Table(name = "managers")
@@ -25,8 +22,24 @@ import lombok.Setter;
 @AllArgsConstructor
 public class Manager extends User {
 
-    // Link to a warehouse this manager is responsible for (optional)
-    @Column(name = "warehouse_id")
-    private UUID warehouseId;
+    // Un manager peut gérer plusieurs entrepôts
+    @OneToMany(mappedBy = "manager", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Warehouse> warehouses = new ArrayList<>();
+
+    /**
+     * Ajouter un entrepôt à ce manager
+     */
+    public void addWarehouse(Warehouse warehouse) {
+        warehouses.add(warehouse);
+        warehouse.setManager(this);
+    }
+
+    /**
+     * Retirer un entrepôt de ce manager
+     */
+    public void removeWarehouse(Warehouse warehouse) {
+        warehouses.remove(warehouse);
+        warehouse.setManager(null);
+    }
 
 }

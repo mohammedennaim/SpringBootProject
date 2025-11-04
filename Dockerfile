@@ -13,13 +13,16 @@ COPY .mvn .mvn
 RUN chmod +x mvnw
 
 # Pre-download dependencies
-RUN ./mvnw dependency:go-offline -B
+RUN ./mvnw dependency:go-offline -B || true
 
 # Copy application sources
 COPY src ./src
 
 # Build the Spring Boot jar (tests skipped for faster Docker builds)
-RUN ./mvnw package -DskipTests
+RUN ./mvnw clean package -DskipTests
+
+# List the target directory to verify the JAR was created
+RUN ls -la /app/target/
 
 ###############################
 # Runtime stage
@@ -28,11 +31,11 @@ FROM eclipse-temurin:17-jre-alpine
 
 WORKDIR /app
 
-# Copy the fat jar from the build stage
-COPY --from=build /app/target/digital-logistics-*.jar app.jar
+# Copy the fat jar from the build stage with explicit name
+COPY --from=build /app/target/digital-logistics-1.0.0.jar app.jar
 
 # Align with application's default port (overridable via SERVER_PORT env)
-EXPOSE 8090
+EXPOSE 8093
 
 # Run the packaged Spring Boot application
-ENTRYPOINT ["java","-jar","app.jar"]
+CMD ["java","-jar","app.jar"]

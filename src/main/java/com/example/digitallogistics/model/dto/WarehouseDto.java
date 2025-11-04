@@ -7,6 +7,8 @@ public class WarehouseDto {
     private String code;
     private String name;
     private Boolean active;
+    private UUID managerId;  // ID du manager qui gère cet entrepôt
+    private String managerEmail;  // Email du manager (optionnel, pour affichage)
 
     public WarehouseDto() {
     }
@@ -48,5 +50,21 @@ public class WarehouseDto {
 
     public void setActive(Boolean active) {
         this.active = active;
+    }
+
+    public UUID getManagerId() {
+        return managerId;
+    }
+
+    public void setManagerId(UUID managerId) {
+        this.managerId = managerId;
+    }
+
+    public String getManagerEmail() {
+        return managerEmail;
+    }
+
+    public void setManagerEmail(String managerEmail) {
+        this.managerEmail = managerEmail;
     }
 }
