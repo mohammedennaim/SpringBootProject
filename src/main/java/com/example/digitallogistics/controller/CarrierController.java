@@ -37,12 +37,10 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 @RestController
 @RequestMapping("/api/carriers")
 @RequiredArgsConstructor
-@Slf4j
 @Tag(name = "Carriers", description = "API de gestion des transporteurs")
 public class CarrierController {
 
@@ -71,9 +69,7 @@ public class CarrierController {
             @RequestParam(required = false) CarrierStatus status,
             @Parameter(description = "Filtrer par nom (recherche partielle)")
             @RequestParam(required = false) String name) {
-        
-        log.info("GET /api/carriers - page: {}, size: {}, status: {}, name: {}", 
-                 page, size, status, name);
+
 
         Sort sort = Sort.by(Sort.Direction.fromString(sortDirection), sortBy);
         Pageable pageable = PageRequest.of(page, size, sort);
@@ -102,9 +98,6 @@ public class CarrierController {
     public ResponseEntity<CarrierDto> createCarrier(
             @Parameter(description = "Données de création du transporteur", required = true)
             @Valid @RequestBody CarrierCreateDto createDto) {
-        
-        log.info("POST /api/carriers - Creating carrier with code: {}", createDto.getCode());
-        
         CarrierDto createdCarrier = carrierService.createCarrier(createDto);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdCarrier);
     }
@@ -122,10 +115,7 @@ public class CarrierController {
     })
     public ResponseEntity<CarrierDto> getCarrierById(
             @Parameter(description = "ID du transporteur", required = true)
-            @PathVariable UUID id) {
-        
-        log.info("GET /api/carriers/{} - Retrieving carrier details", id);
-        
+            @PathVariable UUID id) {        
         CarrierDto carrier = carrierService.getCarrierById(id);
         return ResponseEntity.ok(carrier);
     }
@@ -147,9 +137,6 @@ public class CarrierController {
             @PathVariable UUID id,
             @Parameter(description = "Nouvelles informations du transporteur", required = true)
             @Valid @RequestBody CarrierUpdateDto updateDto) {
-        
-        log.info("PUT /api/carriers/{} - Updating carrier", id);
-        
         CarrierDto updatedCarrier = carrierService.updateCarrier(id, updateDto);
         return ResponseEntity.ok(updatedCarrier);
     }
@@ -171,9 +158,6 @@ public class CarrierController {
             @PathVariable UUID id,
             @Parameter(description = "Nouveau statut du transporteur", required = true)
             @Valid @RequestBody CarrierStatusUpdateDto statusUpdate) {
-        
-        log.info("PATCH /api/carriers/{}/status - Updating status to: {}", id, statusUpdate.getStatus());
-        
         CarrierDto updatedCarrier = carrierService.updateCarrierStatus(id, statusUpdate);
         return ResponseEntity.ok(updatedCarrier);
     }
@@ -188,9 +172,6 @@ public class CarrierController {
         @ApiResponse(responseCode = "403", description = "Accès interdit")
     })
     public ResponseEntity<List<CarrierDto>> getAllActiveCarriers() {
-        
-        log.info("GET /api/carriers/active - Retrieving all active carriers");
-        
         List<CarrierDto> activeCarriers = carrierService.getAllActiveCarriers();
         return ResponseEntity.ok(activeCarriers);
     }
@@ -209,9 +190,6 @@ public class CarrierController {
     public ResponseEntity<CarrierDto> getCarrierByCode(
             @Parameter(description = "Code du transporteur", required = true)
             @PathVariable String code) {
-        
-        log.info("GET /api/carriers/code/{} - Retrieving carrier by code", code);
-        
         CarrierDto carrier = carrierService.getCarrierByCode(code);
         return ResponseEntity.ok(carrier);
     }
@@ -230,9 +208,6 @@ public class CarrierController {
     public ResponseEntity<Void> deleteCarrier(
             @Parameter(description = "ID du transporteur", required = true)
             @PathVariable UUID id) {
-        
-        log.info("DELETE /api/carriers/{} - Deleting carrier", id);
-        
         carrierService.deleteCarrier(id);
         return ResponseEntity.noContent().build();
     }

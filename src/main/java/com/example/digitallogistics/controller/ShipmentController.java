@@ -34,12 +34,10 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 @RestController
 @RequestMapping("/api/shipments")
 @RequiredArgsConstructor
-@Slf4j
 @Tag(name = "Shipments", description = "API de gestion des expéditions")
 public class ShipmentController {
 
@@ -68,10 +66,6 @@ public class ShipmentController {
             @RequestParam(required = false) ShipmentStatus status,
             @Parameter(description = "Filtrer par entrepôt")
             @RequestParam(required = false) UUID warehouseId) {
-        
-        log.info("GET /api/shipments - page: {}, size: {}, status: {}, warehouse: {}", 
-                 page, size, status, warehouseId);
-
         Sort sort = Sort.by(Sort.Direction.fromString(sortDirection), sortBy);
         Pageable pageable = PageRequest.of(page, size, sort);
 
@@ -101,9 +95,6 @@ public class ShipmentController {
     public ResponseEntity<ShipmentDto> createShipment(
             @Parameter(description = "Données de création de l'expédition", required = true)
             @Valid @RequestBody ShipmentCreateDto createDto) {
-        
-        log.info("POST /api/shipments - Creating shipment for order: {}", createDto.getOrderId());
-        
         ShipmentDto createdShipment = shipmentService.createShipment(createDto);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdShipment);
     }
@@ -122,9 +113,6 @@ public class ShipmentController {
     public ResponseEntity<ShipmentDto> getShipmentById(
             @Parameter(description = "ID de l'expédition", required = true)
             @PathVariable UUID id) {
-        
-        log.info("GET /api/shipments/{} - Retrieving shipment details", id);
-        
         ShipmentDto shipment = shipmentService.getShipmentById(id);
         return ResponseEntity.ok(shipment);
     }
@@ -146,9 +134,6 @@ public class ShipmentController {
             @PathVariable UUID id,
             @Parameter(description = "Nouveau statut de l'expédition", required = true)
             @Valid @RequestBody ShipmentStatusUpdateDto statusUpdate) {
-        
-        log.info("PUT /api/shipments/{}/status - Updating status to: {}", id, statusUpdate.getStatus());
-        
         ShipmentDto updatedShipment = shipmentService.updateShipmentStatus(id, statusUpdate);
         return ResponseEntity.ok(updatedShipment);
     }
@@ -166,9 +151,6 @@ public class ShipmentController {
     public ResponseEntity<ShipmentDto> getShipmentByTrackingNumber(
             @Parameter(description = "Numéro de suivi", required = true)
             @PathVariable String trackingNumber) {
-        
-        log.info("GET /api/shipments/tracking/{} - Tracking shipment", trackingNumber);
-        
         ShipmentDto shipment = shipmentService.getShipmentByTrackingNumber(trackingNumber);
         return ResponseEntity.ok(shipment);
     }
@@ -187,9 +169,6 @@ public class ShipmentController {
     public ResponseEntity<Void> deleteShipment(
             @Parameter(description = "ID de l'expédition", required = true)
             @PathVariable UUID id) {
-        
-        log.info("DELETE /api/shipments/{} - Deleting shipment", id);
-        
         shipmentService.deleteShipment(id);
         return ResponseEntity.noContent().build();
     }

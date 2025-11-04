@@ -24,12 +24,10 @@ import com.example.digitallogistics.repository.WarehouseRepository;
 import com.example.digitallogistics.service.ShipmentService;
 
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 @Service
 @RequiredArgsConstructor
 @Transactional
-@Slf4j
 public class ShipmentServiceImpl implements ShipmentService {
 
     private final ShipmentRepository shipmentRepository;
@@ -40,7 +38,6 @@ public class ShipmentServiceImpl implements ShipmentService {
     @Override
     @Transactional(readOnly = true)
     public Page<ShipmentDto> getAllShipments(Pageable pageable) {
-        log.debug("Retrieving all shipments with pagination: {}", pageable);
         Page<Shipment> shipments = shipmentRepository.findAll(pageable);
         return shipments.map(shipmentMapper::toDto);
     }
@@ -48,7 +45,6 @@ public class ShipmentServiceImpl implements ShipmentService {
     @Override
     @Transactional(readOnly = true)
     public ShipmentDto getShipmentById(UUID id) {
-        log.debug("Retrieving shipment by id: {}", id);
         Shipment shipment = shipmentRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("Shipment not found with id: " + id));
         return shipmentMapper.toDto(shipment);
@@ -56,31 +52,24 @@ public class ShipmentServiceImpl implements ShipmentService {
 
     @Override
     public ShipmentDto createShipment(ShipmentCreateDto createDto) {
-        log.debug("Creating new shipment for order: {}", createDto.getOrderId());
-        
-        // Vérifier que la commande n'a pas déjà une expédition
         if (shipmentRepository.existsByOrderId(createDto.getOrderId())) {
             throw new ValidationException("Order already has a shipment: " + createDto.getOrderId());
         }
 
-        // Vérifier que l'entrepôt existe
         Warehouse warehouse = warehouseRepository.findById(createDto.getWarehouseId())
             .orElseThrow(() -> new ResourceNotFoundException("Warehouse not found with id: " + createDto.getWarehouseId()));
 
-        // Vérifier le transporteur s'il est spécifié
         Carrier carrier = null;
         if (createDto.getCarrierId() != null) {
             carrier = carrierRepository.findById(createDto.getCarrierId())
                 .orElseThrow(() -> new ResourceNotFoundException("Carrier not found with id: " + createDto.getCarrierId()));
         }
 
-        // Générer un numéro de suivi unique
         String trackingNumber = createDto.getTrackingNumber();
         if (trackingNumber == null || trackingNumber.trim().isEmpty()) {
             trackingNumber = generateTrackingNumber();
         }
 
-        // Créer l'expédition
         Shipment shipment = Shipment.builder()
             .orderId(createDto.getOrderId())
             .warehouse(warehouse)
@@ -91,22 +80,15 @@ public class ShipmentServiceImpl implements ShipmentService {
             .build();
 
         Shipment savedShipment = shipmentRepository.save(shipment);
-        log.info("Created new shipment with id: {} for order: {}", savedShipment.getId(), createDto.getOrderId());
-        
         return shipmentMapper.toDto(savedShipment);
     }
 
     @Override
     public ShipmentDto updateShipmentStatus(UUID id, ShipmentStatusUpdateDto statusUpdate) {
-        log.debug("Updating shipment status to: {} for shipment: {}", statusUpdate.getStatus(), id);
-        
         Shipment shipment = shipmentRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("Shipment not found with id: " + id));
 
-        // Valider la transition de statut
         validateStatusTransition(shipment.getStatus(), statusUpdate.getStatus());
-
-        // Mettre à jour le statut et les dates appropriées
         shipment.setStatus(statusUpdate.getStatus());
         
         switch (statusUpdate.getStatus()) {
@@ -121,20 +103,16 @@ public class ShipmentServiceImpl implements ShipmentService {
                 }
                 break;
             default:
-                // Aucune action spéciale pour PLANNED
                 break;
         }
 
         Shipment updatedShipment = shipmentRepository.save(shipment);
-        log.info("Updated shipment {} status to: {}", id, statusUpdate.getStatus());
-        
         return shipmentMapper.toDto(updatedShipment);
     }
 
     @Override
     @Transactional(readOnly = true)
     public Page<ShipmentDto> getShipmentsByStatus(ShipmentStatus status, Pageable pageable) {
-        log.debug("Retrieving shipments by status: {}", status);
         Page<Shipment> shipments = shipmentRepository.findByStatus(status, pageable);
         return shipments.map(shipmentMapper::toDto);
     }
@@ -142,7 +120,6 @@ public class ShipmentServiceImpl implements ShipmentService {
     @Override
     @Transactional(readOnly = true)
     public Page<ShipmentDto> getShipmentsByWarehouse(UUID warehouseId, Pageable pageable) {
-        log.debug("Retrieving shipments by warehouse: {}", warehouseId);
         Page<Shipment> shipments = shipmentRepository.findByWarehouseId(warehouseId, pageable);
         return shipments.map(shipmentMapper::toDto);
     }
@@ -150,7 +127,6 @@ public class ShipmentServiceImpl implements ShipmentService {
     @Override
     @Transactional(readOnly = true)
     public ShipmentDto getShipmentByTrackingNumber(String trackingNumber) {
-        log.debug("Retrieving shipment by tracking number: {}", trackingNumber);
         Shipment shipment = shipmentRepository.findByTrackingNumber(trackingNumber)
             .orElseThrow(() -> new ResourceNotFoundException("Shipment not found with tracking number: " + trackingNumber));
         return shipmentMapper.toDto(shipment);
@@ -160,33 +136,25 @@ public class ShipmentServiceImpl implements ShipmentService {
     @Transactional(readOnly = true)
     public Page<ShipmentDto> getShipmentsByStatusAndWarehouse(
             ShipmentStatus status, UUID warehouseId, Pageable pageable) {
-        log.debug("Retrieving shipments by status: {} and warehouse: {}", status, warehouseId);
         Page<Shipment> shipments = shipmentRepository.findByStatusAndWarehouseId(status, warehouseId, pageable);
         return shipments.map(shipmentMapper::toDto);
     }
 
     @Override
     public void deleteShipment(UUID id) {
-        log.debug("Deleting shipment: {}", id);
-        
         Shipment shipment = shipmentRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("Shipment not found with id: " + id));
 
-        // Vérifier que l'expédition peut être supprimée
         if (shipment.getStatus() == ShipmentStatus.DELIVERED) {
             throw new ValidationException("Cannot delete a delivered shipment");
         }
 
         shipmentRepository.delete(shipment);
-        log.info("Deleted shipment: {}", id);
     }
 
-    /**
-     * Valide les transitions de statut autorisées
-     */
     private void validateStatusTransition(ShipmentStatus currentStatus, ShipmentStatus newStatus) {
         if (currentStatus == newStatus) {
-            return; // Pas de changement
+            return;
         }
 
         switch (currentStatus) {
@@ -207,9 +175,7 @@ public class ShipmentServiceImpl implements ShipmentService {
         }
     }
 
-    /**
-     * Génère un numéro de suivi unique
-     */
+    
     private String generateTrackingNumber() {
         return "TRK-" + System.currentTimeMillis() + "-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
     }
