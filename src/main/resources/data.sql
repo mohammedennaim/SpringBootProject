@@ -406,4 +406,48 @@ VALUES
   ((SELECT id FROM sales_orders ORDER BY id OFFSET 2 LIMIT 1), (SELECT id FROM warehouses WHERE code='EAST' LIMIT 1), (SELECT id FROM carriers WHERE code='CARR-003' LIMIT 1), 'DELIVERED', 'TRK-003')
 ON CONFLICT DO NOTHING;
 
+-- =================================================
+-- Migration: manager -> warehouses (one-to-many)
+-- Safe idempotent approach WITHOUT dropping existing tables.
+-- This will add a `manager_id` column to `warehouses` if missing,
+-- populate it from `managers.warehouse_id`, add an index and a FK if needed.
+-- It preserves the existing `managers.warehouse_id` column for backward compatibility.
+-- =================================================
+DO $$
+BEGIN
+    -- Add manager_id column to warehouses if it doesn't exist
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_schema = 'public' AND table_name = 'warehouses' AND column_name = 'manager_id'
+    ) THEN
+        ALTER TABLE warehouses ADD COLUMN manager_id UUID;
+    END IF;
+
+    -- Populate warehouses.manager_id from managers.warehouse_id where applicable
+    -- Only update rows where manager_id is currently null to avoid overwriting existing values
+    UPDATE warehouses w
+    SET manager_id = m.id
+    FROM managers m
+    WHERE m.warehouse_id IS NOT NULL
+      AND w.id = m.warehouse_id
+      AND (w.manager_id IS NULL OR w.manager_id <> m.id);
+
+    -- Create an index on warehouses.manager_id for faster joins (idempotent)
+    PERFORM 1 FROM pg_class WHERE relname = 'idx_warehouses_manager_id';
+    IF NOT FOUND THEN
+        CREATE INDEX idx_warehouses_manager_id ON warehouses(manager_id);
+    END IF;
+
+    -- Add a foreign key constraint if it doesn't already exist
+    IF NOT EXISTS (
+        SELECT 1
+        FROM pg_constraint c
+        JOIN pg_class t ON c.conrelid = t.oid
+        WHERE t.relname = 'warehouses' AND c.conname = 'fk_warehouses_manager'
+    ) THEN
+        ALTER TABLE warehouses ADD CONSTRAINT fk_warehouses_manager FOREIGN KEY (manager_id) REFERENCES managers (id) ON DELETE SET NULL;
+    END IF;
+
+END$$;
+
 COMMIT;

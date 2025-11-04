@@ -786,7 +786,7 @@ InventoryMovement
 **Stratégie d'héritage :** `JOINED` pour la hiérarchie `User`
 
 **Relations :**
-- `Manager` → `Warehouse` : ManyToOne
+- `Manager` can manage many `Warehouses` — One-to-Many (Manager -> Warehouses).
 - `Product` ↔ `Warehouse` : ManyToMany via `Inventory`
 - `Shipment` → `Carrier`, `Warehouse`, `SalesOrder` : ManyToOne
 - `SalesOrder` → `Client` : ManyToOne

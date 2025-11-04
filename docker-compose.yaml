@@ -32,7 +32,9 @@ services:
       - pgadmin_data:/var/lib/pgadmin
 
   app:
-    build: .
+    build:
+      context: .
+      target: build
     container_name: digital_logistics_app
     depends_on:
       - postgres
