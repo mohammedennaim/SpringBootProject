@@ -10,7 +10,7 @@ spring:
   
   jpa:
     hibernate:
-      ddl-auto: none
+      ddl-auto: update
     show-sql: ${SHOW_SQL:false}
     properties:
       hibernate:
@@ -21,15 +21,11 @@ spring:
     init:
       mode: never
 
-# JWT Configuration
 app:
   jwt:
-    # ⚠️ IMPORTANT: Change this in production! Use at least 256-bit secret
-    # Generate a strong secret: openssl rand -base64 32
     secret: ${JWT_SECRET:YourVerySecureRandomSecretKeyHereMustBeAtLeast32CharactersLong!@#}
-    expiration-ms: ${JWT_EXPIRATION:3600000} # 1 hour
+    expiration-ms: ${JWT_EXPIRATION:3600000}
 
-# Server Configuration
 server:
   port: ${SERVER_PORT:8090}
   error:
@@ -38,10 +34,12 @@ server:
     include-stacktrace: on_param
     include-exception: false
 
-# Logging
-logging:
-  level:
-    root: INFO
-    com.example.digitallogistics: DEBUG
-    org.springframework.security: DEBUG
-    org.hibernate.SQL: ${SHOW_SQL:false}
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true
+    path: /swagger-ui.html
+  packages-to-scan: com.example.digitallogistics.controller
+  paths-to-exclude: /api/auth/**
+

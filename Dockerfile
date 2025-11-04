@@ -9,6 +9,9 @@ WORKDIR /app
 COPY pom.xml mvnw ./
 COPY .mvn .mvn
 
+# Make mvnw executable
+RUN chmod +x mvnw
+
 # Pre-download dependencies
 RUN ./mvnw dependency:go-offline -B
 
@@ -32,4 +35,4 @@ COPY --from=build /app/target/digital-logistics-*.jar app.jar
 EXPOSE 8090
 
 # Run the packaged Spring Boot application
-ENTRYPOINT ["java","-jar"]
+ENTRYPOINT ["java","-jar","app.jar"]
