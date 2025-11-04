@@ -13,9 +13,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import javax.validation.Valid;
+import jakarta.validation.Valid;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/clients")
@@ -27,6 +29,17 @@ public class ClientController {
 
     @Autowired
     private ClientMapper clientMapper;
+
+    @GetMapping
+    @Operation(summary = "Obtenir la liste de tous les clients")
+    @PreAuthorize("hasAnyRole('ADMIN', 'WAREHOUSE_MANAGER')")
+    public ResponseEntity<List<ClientDto>> getAllClients() {
+        List<Client> clients = clientService.findAll();
+        List<ClientDto> clientDtos = clients.stream()
+                .map(clientMapper::toDto)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(clientDtos);
+    }
 
     @PostMapping
     @Operation(summary = "Créer un nouveau client")

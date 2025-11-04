@@ -35,7 +35,6 @@ public class InventoryController {
         this.inventoryMapper = inventoryMapper;
     }
 
-    // GET /api/inventories - Liste du stock par entrepôt / produit
     @GetMapping
     @PreAuthorize("hasRole('ADMIN') or hasRole('WAREHOUSE_MANAGER')")
     public List<InventoryDto> list(@RequestParam(required = false) UUID warehouseId,
@@ -55,7 +54,6 @@ public class InventoryController {
                 .collect(Collectors.toList());
     }
 
-    // GET /api/inventories/{id} - Détails d'un inventaire
     @GetMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN') or hasRole('WAREHOUSE_MANAGER')")
     public ResponseEntity<InventoryDto> get(@PathVariable UUID id) {
@@ -66,7 +64,6 @@ public class InventoryController {
         return ResponseEntity.ok(inventoryMapper.toDto(inventory.get()));
     }
 
-    // POST /api/inventories/adjust - Ajustement manuel du stock
     @PostMapping("/adjust")
     @PreAuthorize("hasRole('ADMIN') or hasRole('WAREHOUSE_MANAGER')")
     public ResponseEntity<InventoryDto> adjustInventory(@RequestBody @Valid InventoryAdjustDto adjustDto) {
@@ -83,7 +80,6 @@ public class InventoryController {
         }
     }
 
-    // GET /api/inventories/{productId}/available - Quantité disponible d'un produit
     @GetMapping("/{productId}/available")
     @PreAuthorize("hasRole('ADMIN') or hasRole('WAREHOUSE_MANAGER') or hasRole('CLIENT')")
     public ResponseEntity<Integer> getAvailableQuantity(@PathVariable UUID productId,
@@ -91,10 +87,8 @@ public class InventoryController {
         Integer availableQty;
         
         if (warehouseId != null) {
-            // Get available quantity for specific warehouse
             availableQty = inventoryService.getAvailableQuantityInWarehouse(warehouseId, productId);
         } else {
-            // Get total available quantity across all warehouses
             availableQty = inventoryService.getAvailableQuantity(productId);
         }
         
