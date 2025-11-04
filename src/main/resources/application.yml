@@ -1,0 +1,47 @@
+spring:
+  application:
+    name: digital-logistics
+  
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/logistics_db}
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:postgres}
+    driver-class-name: org.postgresql.Driver
+  
+  jpa:
+    hibernate:
+      ddl-auto: none
+    show-sql: ${SHOW_SQL:false}
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+  
+  sql:
+    init:
+      mode: never
+
+# JWT Configuration
+app:
+  jwt:
+    # ⚠️ IMPORTANT: Change this in production! Use at least 256-bit secret
+    # Generate a strong secret: openssl rand -base64 32
+    secret: ${JWT_SECRET:YourVerySecureRandomSecretKeyHereMustBeAtLeast32CharactersLong!@#}
+    expiration-ms: ${JWT_EXPIRATION:3600000} # 1 hour
+
+# Server Configuration
+server:
+  port: ${SERVER_PORT:8090}
+  error:
+    include-message: always
+    include-binding-errors: always
+    include-stacktrace: on_param
+    include-exception: false
+
+# Logging
+logging:
+  level:
+    root: INFO
+    com.example.digitallogistics: DEBUG
+    org.springframework.security: DEBUG
+    org.hibernate.SQL: ${SHOW_SQL:false}

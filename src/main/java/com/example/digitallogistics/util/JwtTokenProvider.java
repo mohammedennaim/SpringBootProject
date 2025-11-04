@@ -55,9 +55,6 @@ public class JwtTokenProvider {
                 .compact();
     }
 
-    /**
-     * Create a token including a 'roles' claim (comma-separated) for convenience.
-     */
     public String createToken(String subject, Collection<? extends GrantedAuthority> authorities) {
     Date now = new Date();
     Date expiry = new Date(now.getTime() + validityInMilliseconds);
@@ -77,11 +74,9 @@ public class JwtTokenProvider {
 
     public boolean validateToken(String token) {
         try {
-            // cleanup expired revoked tokens opportunistically
             Date now = new Date();
             revokedTokens.entrySet().removeIf(e -> e.getValue().before(now));
 
-            // check revoked first
             if (revokedTokens.containsKey(token)) {
                 return false;
             }
