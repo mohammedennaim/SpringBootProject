@@ -10,9 +10,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-/**
- * Client extends User using JOINED inheritance. The user's id lives in the users table.
- */
 @Entity
 @Table(name = "clients")
 @PrimaryKeyJoinColumn(name = "id")

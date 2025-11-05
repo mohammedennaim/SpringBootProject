@@ -202,6 +202,7 @@ CREATE TABLE IF NOT EXISTS products (
     name VARCHAR(255) NOT NULL,
     category VARCHAR(255),
     unit_price NUMERIC(10, 2),
+    profit NUMERIC(10, 2) DEFAULT 1.00,
     active BOOLEAN DEFAULT TRUE
 );
 
@@ -211,6 +212,7 @@ INSERT INTO
         name,
         category,
         unit_price,
+        profit,
         active
     )
 VALUES (
@@ -218,6 +220,7 @@ VALUES (
         'Product A',
         'General',
         100.00,
+        1.10,
         TRUE
     ),
     (
@@ -225,6 +228,7 @@ VALUES (
         'Product B',
         'Electronics',
         250.00,
+        1.25,
         TRUE
     ),
     (
@@ -232,11 +236,29 @@ VALUES (
         'Product C',
         'Accessories',
         75.00,
+        1.05,
         TRUE
     );
 
 -- Make product SKU unique to allow idempotent inserts
 CREATE UNIQUE INDEX IF NOT EXISTS idx_products_sku ON products(sku);
+
+-- Migration: ensure product 'profit' column exists for older DBs
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1
+        FROM information_schema.columns
+        WHERE table_name='products' AND column_name='profit'
+    ) THEN
+        ALTER TABLE products ADD COLUMN profit NUMERIC(10,2) DEFAULT 1.00;
+    END IF;
+END$$;
+
+-- Populate profit values for seeded SKUs if null
+UPDATE products SET profit = 1.10 WHERE sku = 'SKU-A' AND (profit IS NULL OR profit = 0);
+UPDATE products SET profit = 1.25 WHERE sku = 'SKU-B' AND (profit IS NULL OR profit = 0);
+UPDATE products SET profit = 1.05 WHERE sku = 'SKU-C' AND (profit IS NULL OR profit = 0);
 
 -- Inventories
 CREATE TABLE IF NOT EXISTS inventories (

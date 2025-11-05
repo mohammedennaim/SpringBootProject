@@ -2,6 +2,8 @@ package com.example.digitallogistics.model.dto;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
+import java.util.List;
+import com.example.digitallogistics.model.dto.SalesOrderLineDto;
 
 import com.example.digitallogistics.model.enums.OrderStatus;
 
@@ -9,6 +11,7 @@ public class SalesOrderDto {
     private UUID id;
     private ClientDto client;
     private OrderStatus status;
+    private List<SalesOrderLineDto> lines;
     private LocalDateTime createdAt;
     private LocalDateTime shippedAt;
     private LocalDateTime deliveredAt;
@@ -25,4 +28,6 @@ public class SalesOrderDto {
     public void setShippedAt(LocalDateTime shippedAt) { this.shippedAt = shippedAt; }
     public LocalDateTime getDeliveredAt() { return deliveredAt; }
     public void setDeliveredAt(LocalDateTime deliveredAt) { this.deliveredAt = deliveredAt; }
+    public List<SalesOrderLineDto> getLines() { return lines; }
+    public void setLines(List<SalesOrderLineDto> lines) { this.lines = lines; }
 }

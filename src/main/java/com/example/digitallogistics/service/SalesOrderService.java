@@ -14,6 +14,7 @@ public interface SalesOrderService {
     SalesOrder create(SalesOrderCreateDto dto);
 
     Optional<SalesOrder> findById(UUID id);
+    List<com.example.digitallogistics.model.entity.SalesOrderLine> findLines(UUID orderId);
 
     SalesOrder reserve(UUID id);
 

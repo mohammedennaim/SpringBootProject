@@ -41,45 +41,56 @@ public class SalesOrderController {
             @RequestParam(required = false) UUID clientId,
             @RequestParam(required = false) OrderStatus status) {
         List<SalesOrder> orders = salesOrderService.findAll(Optional.ofNullable(clientId), Optional.ofNullable(status));
-        List<SalesOrderDto> dtos = orders.stream().map(o -> SalesOrderMapper.toDto(o, clientMapper)).toList();
+        List<SalesOrderDto> dtos = orders.stream().map(o -> {
+            java.util.List<com.example.digitallogistics.model.entity.SalesOrderLine> lines = salesOrderService.findLines(o.getId());
+            return SalesOrderMapper.toDto(o, clientMapper, lines);
+        }).toList();
         return ResponseEntity.ok(dtos);
     }
 
     @PostMapping
     public ResponseEntity<SalesOrderDto> create(@RequestBody @Valid SalesOrderCreateDto dto) {
         SalesOrder created = salesOrderService.create(dto);
-        return ResponseEntity.ok(SalesOrderMapper.toDto(created, clientMapper));
+        java.util.List<com.example.digitallogistics.model.entity.SalesOrderLine> lines = salesOrderService.findLines(created.getId());
+        return ResponseEntity.ok(SalesOrderMapper.toDto(created, clientMapper, lines));
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<SalesOrderDto> get(@PathVariable UUID id) {
-        return salesOrderService.findById(id)
-                .map(o -> ResponseEntity.ok(SalesOrderMapper.toDto(o, clientMapper)))
-                .orElseGet(() -> ResponseEntity.notFound().build());
+    return salesOrderService.findById(id)
+        .map(o -> {
+            java.util.List<com.example.digitallogistics.model.entity.SalesOrderLine> lines = salesOrderService.findLines(o.getId());
+            return ResponseEntity.ok(SalesOrderMapper.toDto(o, clientMapper, lines));
+        })
+        .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @PutMapping("/{id}/reserve")
     public ResponseEntity<SalesOrderDto> reserve(@PathVariable UUID id) {
         SalesOrder updated = salesOrderService.reserve(id);
-        return ResponseEntity.ok(SalesOrderMapper.toDto(updated, clientMapper));
+        java.util.List<com.example.digitallogistics.model.entity.SalesOrderLine> lines = salesOrderService.findLines(updated.getId());
+        return ResponseEntity.ok(SalesOrderMapper.toDto(updated, clientMapper, lines));
     }
 
     @PutMapping("/{id}/ship")
     public ResponseEntity<SalesOrderDto> ship(@PathVariable UUID id) {
         SalesOrder updated = salesOrderService.ship(id);
-        return ResponseEntity.ok(SalesOrderMapper.toDto(updated, clientMapper));
+        java.util.List<com.example.digitallogistics.model.entity.SalesOrderLine> lines = salesOrderService.findLines(updated.getId());
+        return ResponseEntity.ok(SalesOrderMapper.toDto(updated, clientMapper, lines));
     }
 
     @PutMapping("/{id}/deliver")
     public ResponseEntity<SalesOrderDto> deliver(@PathVariable UUID id) {
         SalesOrder updated = salesOrderService.deliver(id);
-        return ResponseEntity.ok(SalesOrderMapper.toDto(updated, clientMapper));
+        java.util.List<com.example.digitallogistics.model.entity.SalesOrderLine> lines = salesOrderService.findLines(updated.getId());
+        return ResponseEntity.ok(SalesOrderMapper.toDto(updated, clientMapper, lines));
     }
 
     @PutMapping("/{id}/cancel")
     public ResponseEntity<SalesOrderDto> cancel(@PathVariable UUID id) {
         SalesOrder updated = salesOrderService.cancel(id);
-        return ResponseEntity.ok(SalesOrderMapper.toDto(updated, clientMapper));
+        java.util.List<com.example.digitallogistics.model.entity.SalesOrderLine> lines = salesOrderService.findLines(updated.getId());
+        return ResponseEntity.ok(SalesOrderMapper.toDto(updated, clientMapper, lines));
     }
 
 }

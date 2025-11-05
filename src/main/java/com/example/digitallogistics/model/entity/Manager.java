@@ -9,10 +9,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-/**
- * Warehouse manager user. Extends base User (JOINED inheritance).
- * Un manager peut gérer plusieurs entrepôts (One-to-Many).
- */
 @Entity
 @Table(name = "managers")
 @PrimaryKeyJoinColumn(name = "id")

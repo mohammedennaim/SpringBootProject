@@ -10,9 +10,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-/**
- * Admin user. Extends base User (JOINED inheritance).
- */
 @Entity
 @Table(name = "admins")
 @PrimaryKeyJoinColumn(name = "id")

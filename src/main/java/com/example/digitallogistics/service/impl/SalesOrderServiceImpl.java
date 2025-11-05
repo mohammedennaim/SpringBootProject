@@ -93,6 +93,11 @@ public class SalesOrderServiceImpl implements SalesOrderService {
     }
 
     @Override
+    public List<com.example.digitallogistics.model.entity.SalesOrderLine> findLines(UUID orderId) {
+        return salesOrderLineRepository.findBySalesOrderId(orderId);
+    }
+
+    @Override
     @Transactional
     public SalesOrder reserve(UUID id) {
         SalesOrder order = salesOrderRepository.findById(id).orElseThrow(() -> new RuntimeException("Order not found"));

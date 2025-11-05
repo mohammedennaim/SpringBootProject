@@ -964,4 +964,4 @@ docker exec -it digital-logistics-app sh -c "nc -zv postgres 5432"
 
 ---
 
-**Made with ❤️ by Digital Logistics Team**
+**Made by Mohammed ENNAIM**
