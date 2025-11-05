@@ -37,6 +37,7 @@ public class User {
     private String email;
 
     @Column(name = "password")
+    @com.fasterxml.jackson.annotation.JsonIgnore
     private String password;
 
     @Column(name = "role")

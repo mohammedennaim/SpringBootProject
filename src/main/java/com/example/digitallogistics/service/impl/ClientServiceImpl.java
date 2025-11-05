@@ -45,8 +45,6 @@ public class ClientServiceImpl implements ClientService {
 
     @Override
     public Client create(Client client) {
-        // With JPA inheritance a Client is also a User.
-        // Ensure required user fields are set before saving the Client.
         if (client.getPassword() == null || client.getPassword().isBlank()) {
             String raw = UUID.randomUUID().toString();
             client.setPassword(passwordEncoder.encode(raw));
@@ -56,7 +54,6 @@ public class ClientServiceImpl implements ClientService {
             client.setActive(true);
         }
 
-        // If contact looks like an email we set it as the user's email
         if (client.getContact() != null && client.getContact().contains("@") && client.getEmail() == null) {
             client.setEmail(client.getContact());
         }

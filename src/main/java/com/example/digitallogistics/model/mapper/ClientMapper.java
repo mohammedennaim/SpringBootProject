@@ -19,6 +19,7 @@ public class ClientMapper {
         dto.setName(client.getName());
         dto.setContact(client.getContact());
         dto.setActive(client.isActive());
+        dto.setRole(Role.CLIENT);
         return dto;
     }
 
