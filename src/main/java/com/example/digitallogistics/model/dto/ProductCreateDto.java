@@ -23,6 +23,9 @@ public class ProductCreateDto {
     @DecimalMin(value = "0.01", message = "Price must be greater than 0")
     private BigDecimal unitPrice;
 
+    @DecimalMin(value = "0.00", message = "Profit must be zero or positive")
+    private BigDecimal profit;
+
     public String getSku() {
         return sku;
     }
@@ -53,5 +56,13 @@ public class ProductCreateDto {
 
     public void setUnitPrice(BigDecimal unitPrice) {
         this.unitPrice = unitPrice;
+    }
+
+    public BigDecimal getProfit() {
+        return profit;
+    }
+
+    public void setProfit(BigDecimal profit) {
+        this.profit = profit;
     }
 }

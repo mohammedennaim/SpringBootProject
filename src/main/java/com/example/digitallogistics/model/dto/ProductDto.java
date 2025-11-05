@@ -9,6 +9,7 @@ public class ProductDto {
     private String name;
     private String category;
     private BigDecimal unitPrice;
+    private BigDecimal profit;
     private boolean active;
 
     public UUID getId() {
@@ -49,6 +50,14 @@ public class ProductDto {
 
     public void setUnitPrice(BigDecimal unitPrice) {
         this.unitPrice = unitPrice;
+    }
+
+    public BigDecimal getProfit() {
+        return profit;
+    }
+
+    public void setProfit(BigDecimal profit) {
+        this.profit = profit;
     }
 
     public boolean isActive() {
