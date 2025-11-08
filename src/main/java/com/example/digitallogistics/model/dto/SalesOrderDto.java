@@ -3,7 +3,6 @@ package com.example.digitallogistics.model.dto;
 import java.time.LocalDateTime;
 import java.util.UUID;
 import java.util.List;
-import com.example.digitallogistics.model.dto.SalesOrderLineDto;
 
 import com.example.digitallogistics.model.enums.OrderStatus;
 

@@ -58,6 +58,7 @@ public class SalesOrderServiceImpl implements SalesOrderService {
         return salesOrderRepository.findAll();
     }
 
+    @SuppressWarnings("null")
     @Override
     @Transactional
     public SalesOrder create(SalesOrderCreateDto dto) {
@@ -72,6 +73,7 @@ public class SalesOrderServiceImpl implements SalesOrderService {
 
         List<SalesOrderLine> lines = new ArrayList<>();
         for (SalesOrderLineCreateDto l : dto.lines) {
+            @SuppressWarnings("null")
             Product p = productRepository.findById(l.productId).orElse(null);
             SalesOrderLine line = SalesOrderLine.builder()
                     .product(p)
@@ -87,6 +89,7 @@ public class SalesOrderServiceImpl implements SalesOrderService {
         return salesOrderRepository.save(saved);
     }
 
+    @SuppressWarnings("null")
     @Override
     public Optional<SalesOrder> findById(UUID id) {
         return salesOrderRepository.findById(id);
@@ -100,6 +103,7 @@ public class SalesOrderServiceImpl implements SalesOrderService {
     @Override
     @Transactional
     public SalesOrder reserve(UUID id) {
+        @SuppressWarnings("null")
         SalesOrder order = salesOrderRepository.findById(id).orElseThrow(() -> new RuntimeException("Order not found"));
         if (order.getStatus() != OrderStatus.CREATED) {
             throw new RuntimeException("Only CREATED orders can be reserved");
@@ -136,6 +140,7 @@ public class SalesOrderServiceImpl implements SalesOrderService {
     @Override
     @Transactional
     public SalesOrder ship(UUID id) {
+        @SuppressWarnings("null")
         SalesOrder order = salesOrderRepository.findById(id).orElseThrow(() -> new RuntimeException("Order not found"));
         if (order.getStatus() != OrderStatus.RESERVED) {
             throw new RuntimeException("Only RESERVED orders can be shipped");
@@ -148,6 +153,7 @@ public class SalesOrderServiceImpl implements SalesOrderService {
     @Override
     @Transactional
     public SalesOrder deliver(UUID id) {
+        @SuppressWarnings("null")
         SalesOrder order = salesOrderRepository.findById(id).orElseThrow(() -> new RuntimeException("Order not found"));
         if (order.getStatus() != OrderStatus.SHIPPED) {
             throw new RuntimeException("Only SHIPPED orders can be delivered");
@@ -160,6 +166,7 @@ public class SalesOrderServiceImpl implements SalesOrderService {
     @Override
     @Transactional
     public SalesOrder cancel(UUID id) {
+        @SuppressWarnings("null")
         SalesOrder order = salesOrderRepository.findById(id).orElseThrow(() -> new RuntimeException("Order not found"));
         // release reserved quantities
         List<SalesOrderLine> lines = salesOrderLineRepository.findBySalesOrderId(order.getId());

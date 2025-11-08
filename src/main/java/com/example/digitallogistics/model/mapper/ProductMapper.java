@@ -19,9 +19,11 @@ public interface ProductMapper {
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "active", constant = "true")
+    @Mapping(target = "quantity", ignore = true)
     Product toEntity(ProductCreateDto dto);
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "sku", ignore = true)
+    @Mapping(target = "quantity", ignore = true)
     void updateFromDto(ProductUpdateDto dto, @MappingTarget Product entity);
 }

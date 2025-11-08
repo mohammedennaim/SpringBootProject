@@ -33,6 +33,7 @@ public class CarrierServiceImpl implements CarrierService {
     @Override
     @Transactional(readOnly = true)
     public Page<CarrierDto> getAllCarriers(Pageable pageable) {
+        @SuppressWarnings("null")
         Page<Carrier> carriers = carrierRepository.findAll(pageable);
         return carriers.map(carrierMapper::toDto);
     }
@@ -40,6 +41,7 @@ public class CarrierServiceImpl implements CarrierService {
     @Override
     @Transactional(readOnly = true)
     public CarrierDto getCarrierById(UUID id) {
+        @SuppressWarnings("null")
         Carrier carrier = carrierRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("Carrier not found with id: " + id));
         return carrierMapper.toDto(carrier);
@@ -68,17 +70,20 @@ public class CarrierServiceImpl implements CarrierService {
 
     @Override
     public CarrierDto updateCarrier(UUID id, CarrierUpdateDto updateDto) {
+        @SuppressWarnings("null")
         Carrier carrier = carrierRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("Carrier not found with id: " + id));
 
         carrierMapper.updateFromDto(updateDto, carrier);
 
+        @SuppressWarnings("null")
         Carrier updatedCarrier = carrierRepository.save(carrier);
         return carrierMapper.toDto(updatedCarrier);
     }
 
     @Override
     public CarrierDto updateCarrierStatus(UUID id, CarrierStatusUpdateDto statusUpdate) {
+        @SuppressWarnings("null")
         Carrier carrier = carrierRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("Carrier not found with id: " + id));
 
@@ -121,8 +126,10 @@ public class CarrierServiceImpl implements CarrierService {
                 .toList();
     }
 
+    @SuppressWarnings("null")
     @Override
     public void deleteCarrier(UUID id) {
+        @SuppressWarnings("null")
         Carrier carrier = carrierRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("Carrier not found with id: " + id));
 

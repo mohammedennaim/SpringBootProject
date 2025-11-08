@@ -24,6 +24,7 @@ public class SupplierServiceImpl implements SupplierService {
         return supplierRepository.findAll();
     }
 
+    @SuppressWarnings("null")
     @Override
     public Optional<Supplier> findById(UUID id) {
         return supplierRepository.findById(id);
@@ -34,11 +35,13 @@ public class SupplierServiceImpl implements SupplierService {
         return supplierRepository.findByNameContainingIgnoreCase(namePart);
     }
 
+    @SuppressWarnings("null")
     @Override
     public Supplier create(Supplier supplier) {
         return supplierRepository.save(supplier);
     }
 
+    @SuppressWarnings("null")
     @Override
     public Optional<Supplier> update(UUID id, Supplier supplier) {
         if (supplierRepository.existsById(id)) {
@@ -48,6 +51,7 @@ public class SupplierServiceImpl implements SupplierService {
         return Optional.empty();
     }
 
+    @SuppressWarnings("null")
     @Override
     public void deleteById(UUID id) {
         supplierRepository.deleteById(id);

@@ -6,27 +6,29 @@ import java.util.UUID;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import com.example.digitallogistics.model.entity.Product;
 import com.example.digitallogistics.repository.ProductRepository;
 import com.example.digitallogistics.service.ProductService;
 
 @Service
-@Transactional
 public class ProductServiceImpl implements ProductService {
 
     private final ProductRepository productRepository;
+    private final com.example.digitallogistics.service.InventoryService inventoryService;
 
-    public ProductServiceImpl(ProductRepository productRepository) {
+    public ProductServiceImpl(ProductRepository productRepository, com.example.digitallogistics.service.InventoryService inventoryService) {
         this.productRepository = productRepository;
+        this.inventoryService = inventoryService;
     }
 
+    @SuppressWarnings("null")
     @Override
     public Product create(Product product) {
         return productRepository.save(product);
     }
 
+    @SuppressWarnings("null")
     @Override
     public Optional<Product> findById(UUID id) {
         return productRepository.findById(id);
@@ -37,6 +39,7 @@ public class ProductServiceImpl implements ProductService {
         return productRepository.findBySku(sku);
     }
 
+    @SuppressWarnings("null")
     @Override
     public Optional<Product> update(UUID id, Product product) {
         return productRepository.findById(id).map(existing -> {
@@ -48,9 +51,9 @@ public class ProductServiceImpl implements ProductService {
         });
     }
 
+    @SuppressWarnings("null")
     @Override
     public void deleteById(UUID id) {
-        // logical delete: mark inactive
         productRepository.findById(id).ifPresent(p -> {
             p.setActive(false);
             productRepository.save(p);

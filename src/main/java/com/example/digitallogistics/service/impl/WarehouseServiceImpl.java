@@ -29,6 +29,7 @@ public class WarehouseServiceImpl implements WarehouseService {
         return warehouseRepository.findByActiveTrue();
     }
 
+    @SuppressWarnings("null")
     @Override
     public Optional<Warehouse> findById(UUID id) {
         return warehouseRepository.findById(id);
@@ -39,11 +40,13 @@ public class WarehouseServiceImpl implements WarehouseService {
         return warehouseRepository.findByCode(code);
     }
 
+    @SuppressWarnings("null")
     @Override
     public Warehouse create(Warehouse warehouse) {
         return warehouseRepository.save(warehouse);
     }
 
+    @SuppressWarnings("null")
     @Override
     public Optional<Warehouse> update(UUID id, Warehouse warehouse) {
         if (warehouseRepository.existsById(id)) {
@@ -55,6 +58,7 @@ public class WarehouseServiceImpl implements WarehouseService {
 
     @Override
     public void deleteById(UUID id) {
+        @SuppressWarnings("null")
         Optional<Warehouse> warehouse = warehouseRepository.findById(id);
         if (warehouse.isPresent()) {
             Warehouse w = warehouse.get();

@@ -38,6 +38,7 @@ public class ShipmentServiceImpl implements ShipmentService {
     @Override
     @Transactional(readOnly = true)
     public Page<ShipmentDto> getAllShipments(Pageable pageable) {
+        @SuppressWarnings("null")
         Page<Shipment> shipments = shipmentRepository.findAll(pageable);
         return shipments.map(shipmentMapper::toDto);
     }
@@ -45,17 +46,20 @@ public class ShipmentServiceImpl implements ShipmentService {
     @Override
     @Transactional(readOnly = true)
     public ShipmentDto getShipmentById(UUID id) {
+        @SuppressWarnings("null")
         Shipment shipment = shipmentRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("Shipment not found with id: " + id));
         return shipmentMapper.toDto(shipment);
     }
 
+    @SuppressWarnings("null")
     @Override
     public ShipmentDto createShipment(ShipmentCreateDto createDto) {
         if (shipmentRepository.existsByOrderId(createDto.getOrderId())) {
             throw new ValidationException("Order already has a shipment: " + createDto.getOrderId());
         }
 
+        @SuppressWarnings("null")
         Warehouse warehouse = warehouseRepository.findById(createDto.getWarehouseId())
             .orElseThrow(() -> new ResourceNotFoundException("Warehouse not found with id: " + createDto.getWarehouseId()));
 
@@ -79,12 +83,14 @@ public class ShipmentServiceImpl implements ShipmentService {
             .shippedAt(LocalDateTime.now())
             .build();
 
+        @SuppressWarnings("null")
         Shipment savedShipment = shipmentRepository.save(shipment);
         return shipmentMapper.toDto(savedShipment);
     }
 
     @Override
     public ShipmentDto updateShipmentStatus(UUID id, ShipmentStatusUpdateDto statusUpdate) {
+        @SuppressWarnings("null")
         Shipment shipment = shipmentRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("Shipment not found with id: " + id));
 
@@ -142,6 +148,7 @@ public class ShipmentServiceImpl implements ShipmentService {
 
     @Override
     public void deleteShipment(UUID id) {
+        @SuppressWarnings("null")
         Shipment shipment = shipmentRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("Shipment not found with id: " + id));
 

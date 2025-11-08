@@ -34,6 +34,9 @@ public class Product {
     @Column(name = "profit", precision = 10, scale = 2)
     private BigDecimal profit;
 
+    @Column(name = "quantity", nullable = false)
+    private Integer quantity = 0;
+
     @Column(name = "active", nullable = false)
     private boolean active = true;
 

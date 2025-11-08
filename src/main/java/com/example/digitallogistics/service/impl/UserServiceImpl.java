@@ -25,6 +25,7 @@ public class UserServiceImpl implements UserService {
         return userRepository.findAll();
     }
 
+    @SuppressWarnings("null")
     @Override
     public Optional<User> findById(UUID id) {
         return userRepository.findById(id);
@@ -48,6 +49,7 @@ public class UserServiceImpl implements UserService {
         return userRepository.save(user);
     }
 
+    @SuppressWarnings("null")
     @Override
     public Optional<User> update(UUID id, User user) {
         return userRepository.findById(id).map(existing -> {
@@ -59,6 +61,7 @@ public class UserServiceImpl implements UserService {
         });
     }
 
+    @SuppressWarnings("null")
     @Override
     public void delete(UUID id) {
         userRepository.deleteById(id);

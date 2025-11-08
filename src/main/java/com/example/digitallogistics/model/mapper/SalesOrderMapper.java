@@ -1,6 +1,5 @@
 package com.example.digitallogistics.model.mapper;
 
-import com.example.digitallogistics.model.dto.ClientDto;
 import com.example.digitallogistics.model.dto.SalesOrderDto;
 import com.example.digitallogistics.model.dto.SalesOrderLineDto;
 import com.example.digitallogistics.model.entity.SalesOrder;

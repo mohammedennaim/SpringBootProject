@@ -3,8 +3,8 @@ package com.example.digitallogistics.model.dto;
 import java.math.BigDecimal;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.NotNull;
 
 public class ProductCreateDto {
     
@@ -25,6 +25,7 @@ public class ProductCreateDto {
 
     @DecimalMin(value = "0.00", message = "Profit must be zero or positive")
     private BigDecimal profit;
+
 
     public String getSku() {
         return sku;
