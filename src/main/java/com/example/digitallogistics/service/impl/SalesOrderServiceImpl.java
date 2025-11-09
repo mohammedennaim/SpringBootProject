@@ -63,28 +63,26 @@ public class SalesOrderServiceImpl implements SalesOrderService {
     @Override
     @Transactional
     public SalesOrder create(SalesOrderCreateDto dto) {
-        // validate requested quantities against available inventory before creating order
+        // validate requested quantities against total qtyOnHand before creating order
         for (SalesOrderLineCreateDto l : dto.lines) {
-            int available = inventoryRepository.findByProductId(l.productId).stream()
-                    .mapToInt(inv -> {
-                        int onHand = inv.getQtyOnHand() != null ? inv.getQtyOnHand() : 0;
-                        int reserved = inv.getQtyReserved() != null ? inv.getQtyReserved() : 0;
-                        return Math.max(0, onHand - reserved);
-                    }).sum();
-            if (l.quantity > available) {
-                // try to include SKU if product exists
+            int totalOnHand = inventoryRepository.findByProductId(l.productId).stream()
+                    .mapToInt(inv -> inv.getQtyOnHand() != null ? inv.getQtyOnHand() : 0)
+                    .sum();
+            if (l.quantity > totalOnHand) {
+                // include product SKU if available for clearer message
                 Product p = productRepository.findById(l.productId).orElse(null);
                 String prodRef = p != null ? (p.getSku() != null ? p.getSku() : p.getId().toString()) : l.productId.toString();
-                throw new ValidationException("Insufficient inventory for product " + prodRef + ": requested=" + l.quantity + ", available=" + available);
+                throw new ValidationException("Insufficient inventory (qtyOnHand) for product " + prodRef + ": requested=" + l.quantity + ", totalOnHand=" + totalOnHand);
             }
         }
 
+        // create order and immediately reserve quantities (decrement qtyOnHand, increment qtyReserved)
         SalesOrder order = SalesOrder.builder()
                 .status(OrderStatus.CREATED)
                 .createdAt(LocalDateTime.now())
                 .build();
 
-    clientRepository.findById(dto.clientId).ifPresent(order::setClient);
+        clientRepository.findById(dto.clientId).ifPresent(order::setClient);
 
         SalesOrder saved = salesOrderRepository.save(order);
 
@@ -102,6 +100,33 @@ public class SalesOrderServiceImpl implements SalesOrderService {
             lines.add(salesOrderLineRepository.save(line));
         }
 
+        // perform reservation immediately
+        for (SalesOrderLine line : lines) {
+            int qtyToReserve = line.getQuantity();
+            List<Inventory> inventories = inventoryRepository.findByProductId(line.getProduct().getId()).stream()
+                    .sorted(Comparator.comparingInt(inv -> -((inv.getQtyOnHand() != null ? inv.getQtyOnHand() : 0))))
+                    .toList();
+
+            for (Inventory inv : inventories) {
+                int onHand = inv.getQtyOnHand() != null ? inv.getQtyOnHand() : 0;
+                if (onHand <= 0) continue;
+                int take = Math.min(onHand, qtyToReserve);
+                inv.setQtyReserved((inv.getQtyReserved() != null ? inv.getQtyReserved() : 0) + take);
+                inv.setQtyOnHand(onHand - take);
+                inventoryRepository.save(inv);
+                qtyToReserve -= take;
+                if (qtyToReserve <= 0) break;
+            }
+
+            if (qtyToReserve > 0) {
+                // mark backorder if unable to reserve fully (shouldn't happen because we validated totalOnHand)
+                line.setBackorder(true);
+                salesOrderLineRepository.save(line);
+            }
+        }
+
+        // set order status to RESERVED because create immediately reserved quantities
+        saved.setStatus(OrderStatus.RESERVED);
         saved.setCreatedAt(LocalDateTime.now());
         return salesOrderRepository.save(saved);
     }
