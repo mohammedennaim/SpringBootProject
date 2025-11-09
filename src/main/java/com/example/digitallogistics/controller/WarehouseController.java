@@ -38,7 +38,6 @@ public class WarehouseController {
         this.warehouseMapper = warehouseMapper;
     }
 
-    // GET /api/warehouses - Liste des entrepôts
     @GetMapping
     @PreAuthorize("hasRole('ADMIN') or hasRole('WAREHOUSE_MANAGER')")
     public List<WarehouseDto> list() {
@@ -47,12 +46,11 @@ public class WarehouseController {
                 .collect(Collectors.toList());
     }
 
-    // POST /api/warehouses - Création d'un entrepôt
+    @SuppressWarnings("null")
     @PostMapping
     @PreAuthorize("hasRole('ADMIN') or hasRole('WAREHOUSE_MANAGER')")
     public ResponseEntity<WarehouseDto> create(@RequestBody @Valid WarehouseCreateDto createDto) {
         Warehouse warehouse = warehouseMapper.toEntity(createDto);
-        // Set default active status if not provided
         if (warehouse.getActive() == null) {
             warehouse.setActive(true);
         }
@@ -61,7 +59,6 @@ public class WarehouseController {
         return ResponseEntity.created(URI.create("/api/warehouses/" + dto.getId())).body(dto);
     }
 
-    // GET /api/warehouses/{id} - Détails d'un entrepôt
     @GetMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN') or hasRole('WAREHOUSE_MANAGER')")
     public ResponseEntity<WarehouseDto> get(@PathVariable UUID id) {
@@ -72,7 +69,6 @@ public class WarehouseController {
         return ResponseEntity.ok(warehouseMapper.toDto(warehouse.get()));
     }
 
-    // PUT /api/warehouses/{id} - Mise à jour
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN') or hasRole('WAREHOUSE_MANAGER')")
     public ResponseEntity<WarehouseDto> update(@PathVariable UUID id, @RequestBody @Valid WarehouseUpdateDto updateDto) {
@@ -91,7 +87,6 @@ public class WarehouseController {
         return ResponseEntity.notFound().build();
     }
 
-    // DELETE /api/warehouses/{id} - Suppression / désactivation
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN') or hasRole('WAREHOUSE_MANAGER')")
     public ResponseEntity<Void> delete(@PathVariable UUID id) {

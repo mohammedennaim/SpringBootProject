@@ -43,7 +43,7 @@ public class ProductController {
         this.productMapper = productMapper;
     }
 
-    // GET /api/products - paginated / filtered list
+    @SuppressWarnings("null")
     @GetMapping
     @PreAuthorize("hasRole('ADMIN') or hasRole('WAREHOUSE_MANAGER')")
     public Page<ProductDto> list(@RequestParam(defaultValue = "0") int page,
@@ -56,7 +56,6 @@ public class ProductController {
                 products.getTotalElements());
     }
 
-    // GET /api/products/{id}
     @GetMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN') or hasRole('WAREHOUSE_MANAGER')")
     public ResponseEntity<ProductDto> get(@PathVariable UUID id) {
@@ -64,7 +63,6 @@ public class ProductController {
         return opt.map(p -> ResponseEntity.ok(productMapper.toDto(p))).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    // GET /api/products/search?sku={sku}
     @GetMapping("/search")
     @PreAuthorize("hasRole('ADMIN') or hasRole('WAREHOUSE_MANAGER')")
     public ResponseEntity<ProductDto> searchBySku(@RequestParam String sku) {
@@ -72,7 +70,7 @@ public class ProductController {
         return opt.map(p -> ResponseEntity.ok(productMapper.toDto(p))).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    // POST /api/products
+    @SuppressWarnings("null")
     @PostMapping
     @PreAuthorize("hasRole('ADMIN') or hasRole('WAREHOUSE_MANAGER')")
     public ResponseEntity<ProductDto> create(@RequestBody @Valid ProductCreateDto createDto) {
@@ -82,7 +80,6 @@ public class ProductController {
         return ResponseEntity.created(URI.create("/api/products/" + dto.getId())).body(dto);
     }
 
-    // PUT /api/products/{id}
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN') or hasRole('WAREHOUSE_MANAGER')")
     public ResponseEntity<ProductDto> update(@PathVariable UUID id, @RequestBody @Valid ProductUpdateDto updateDto) {
@@ -95,7 +92,6 @@ public class ProductController {
         return updated.map(p -> ResponseEntity.ok(productMapper.toDto(p))).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    // PATCH /api/products/{id}/activate - toggle active flag
     @PatchMapping("/{id}/activate")
     @PreAuthorize("hasRole('ADMIN') or hasRole('WAREHOUSE_MANAGER')")
     public ResponseEntity<ProductDto> activateToggle(@PathVariable UUID id) {
@@ -107,7 +103,6 @@ public class ProductController {
         return ResponseEntity.ok(productMapper.toDto(p));
     }
 
-    // DELETE /api/products/{id} - logical deletion (deactivate)
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN') or hasRole('WAREHOUSE_MANAGER')")
     public ResponseEntity<Void> delete(@PathVariable UUID id) {

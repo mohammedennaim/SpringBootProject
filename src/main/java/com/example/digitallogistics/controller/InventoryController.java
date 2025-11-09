@@ -5,9 +5,12 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -29,6 +32,7 @@ public class InventoryController {
 
     private final InventoryService inventoryService;
     private final InventoryMapper inventoryMapper;
+    private static final Logger log = LoggerFactory.getLogger(InventoryController.class);
 
     public InventoryController(InventoryService inventoryService, InventoryMapper inventoryMapper) {
         this.inventoryService = inventoryService;
@@ -76,6 +80,30 @@ public class InventoryController {
             );
             return ResponseEntity.ok(inventoryMapper.toDto(adjustedInventory));
         } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('WAREHOUSE_MANAGER')")
+    public ResponseEntity<InventoryDto> updateInventory(@PathVariable UUID id, @RequestBody @Valid InventoryDto dto) {
+        try {
+            boolean exists = inventoryService.findById(id).isPresent();
+            Inventory updated = inventoryService.updateInventory(
+                id,
+                dto.getWarehouseId(),
+                dto.getProductId(),
+                dto.getQtyOnHand(),
+                dto.getQtyReserved()
+            );
+            if (exists) {
+                return ResponseEntity.ok(inventoryMapper.toDto(updated));
+            } else {
+                return ResponseEntity.created(java.net.URI.create("/api/inventories/" + updated.getId()))
+                        .body(inventoryMapper.toDto(updated));
+            }
+        } catch (RuntimeException e) {
+            log.warn("Failed to update inventory {}: {}", id, e.getMessage());
             return ResponseEntity.badRequest().build();
         }
     }

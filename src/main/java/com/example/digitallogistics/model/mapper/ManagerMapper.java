@@ -22,7 +22,6 @@ public class ManagerMapper {
         dto.setId(manager.getId());
         dto.setEmail(manager.getEmail());
         
-        // Mapper les IDs des entrepôts gérés par ce manager
         if (manager.getWarehouses() != null) {
             dto.setWarehouseIds(
                 manager.getWarehouses().stream()
@@ -45,8 +44,7 @@ public class ManagerMapper {
         manager.setPassword(managerCreateDto.getPassword());
         manager.setActive(managerCreateDto.getActive() != null ? managerCreateDto.getActive() : true);
         manager.setRole(Role.WAREHOUSE_MANAGER);
-        
-        // Les entrepôts seront associés dans le service
+    
         return manager;
     }
 
@@ -61,7 +59,6 @@ public class ManagerMapper {
         if (managerUpdateDto.getPassword() != null) {
             manager.setPassword(managerUpdateDto.getPassword());
         }
-        // Les entrepôts seront gérés dans le service
         if (managerUpdateDto.getActive() != null) {
             manager.setActive(managerUpdateDto.getActive());
         }

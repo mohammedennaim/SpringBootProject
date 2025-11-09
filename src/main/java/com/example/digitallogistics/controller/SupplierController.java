@@ -57,6 +57,7 @@ public class SupplierController {
     }
 
     // POST /api/suppliers - Création d'un fournisseur
+    @SuppressWarnings("null")
     @PostMapping
     @PreAuthorize("hasRole('ADMIN') or hasRole('WAREHOUSE_MANAGER')")
     public ResponseEntity<SupplierDto> create(@RequestBody @Valid SupplierCreateDto createDto) {
@@ -66,7 +67,6 @@ public class SupplierController {
         return ResponseEntity.created(URI.create("/api/suppliers/" + dto.getId())).body(dto);
     }
 
-    // GET /api/suppliers/{id} - Détails d'un fournisseur
     @GetMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN') or hasRole('WAREHOUSE_MANAGER')")
     public ResponseEntity<SupplierDto> get(@PathVariable UUID id) {

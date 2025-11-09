@@ -191,4 +191,44 @@ public class InventoryServiceImpl implements InventoryService {
         }
 
     }
+
+    @SuppressWarnings("null")
+    @Override
+    public Inventory updateInventory(UUID id, UUID warehouseId, UUID productId, Integer qtyOnHand, Integer qtyReserved) {
+        Optional<Inventory> opt = inventoryRepository.findById(id);
+        if (opt.isEmpty()) {
+            // create new inventory with requested id
+            Optional<Warehouse> wh = warehouseRepository.findById(warehouseId);
+            Optional<Product> p = productRepository.findById(productId);
+            if (wh.isEmpty()) throw new RuntimeException("Warehouse not found");
+            if (p.isEmpty()) throw new RuntimeException("Product not found");
+            Inventory newInv = Inventory.builder()
+                    .id(id)
+                    .warehouse(wh.get())
+                    .product(p.get())
+                    .qtyOnHand(qtyOnHand != null ? qtyOnHand : 0)
+                    .qtyReserved(qtyReserved != null ? qtyReserved : 0)
+                    .build();
+            return inventoryRepository.save(newInv);
+        }
+
+        Inventory inv = opt.get();
+
+        if (warehouseId != null) {
+            Optional<Warehouse> wh = warehouseRepository.findById(warehouseId);
+            if (wh.isEmpty()) throw new RuntimeException("Warehouse not found");
+            inv.setWarehouse(wh.get());
+        }
+
+        if (productId != null) {
+            Optional<Product> p = productRepository.findById(productId);
+            if (p.isEmpty()) throw new RuntimeException("Product not found");
+            inv.setProduct(p.get());
+        }
+
+        if (qtyOnHand != null) inv.setQtyOnHand(qtyOnHand);
+        if (qtyReserved != null) inv.setQtyReserved(qtyReserved);
+
+        return inventoryRepository.save(inv);
+    }
 }
