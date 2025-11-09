@@ -11,7 +11,6 @@ public class InventoryDto {
     private String productName;
     private Integer qtyOnHand;
     private Integer qtyReserved;
-    private Integer qtyAvailable; // calculated field: qtyOnHand - qtyReserved
 
     public InventoryDto() {
     }
@@ -24,9 +23,8 @@ public class InventoryDto {
         this.productId = productId;
         this.productSku = productSku;
         this.productName = productName;
-        this.qtyOnHand = qtyOnHand;
-        this.qtyReserved = qtyReserved;
-        this.qtyAvailable = (qtyOnHand != null && qtyReserved != null) ? qtyOnHand - qtyReserved : null;
+    this.qtyOnHand = qtyOnHand;
+    this.qtyReserved = qtyReserved;
     }
 
     public UUID getId() {
@@ -83,7 +81,6 @@ public class InventoryDto {
 
     public void setQtyOnHand(Integer qtyOnHand) {
         this.qtyOnHand = qtyOnHand;
-        updateQtyAvailable();
     }
 
     public Integer getQtyReserved() {
@@ -92,18 +89,6 @@ public class InventoryDto {
 
     public void setQtyReserved(Integer qtyReserved) {
         this.qtyReserved = qtyReserved;
-        updateQtyAvailable();
     }
 
-    public Integer getQtyAvailable() {
-        return qtyAvailable;
-    }
-
-    public void setQtyAvailable(Integer qtyAvailable) {
-        this.qtyAvailable = qtyAvailable;
-    }
-
-    private void updateQtyAvailable() {
-        this.qtyAvailable = (qtyOnHand != null && qtyReserved != null) ? qtyOnHand - qtyReserved : null;
-    }
 }

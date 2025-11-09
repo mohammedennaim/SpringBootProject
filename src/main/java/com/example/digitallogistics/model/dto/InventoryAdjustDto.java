@@ -5,7 +5,7 @@ import java.util.UUID;
 public class InventoryAdjustDto {
     private UUID warehouseId;
     private UUID productId;
-    private Integer adjustmentQty; // positive for increase, negative for decrease
+    private Integer adjustmentQty;
     private String reason;
 
     public InventoryAdjustDto() {

@@ -17,6 +17,5 @@ public interface InventoryMapper {
     @Mapping(target = "productId", source = "product.id")
     @Mapping(target = "productSku", source = "product.sku")
     @Mapping(target = "productName", source = "product.name")
-    @Mapping(target = "qtyAvailable", expression = "java((inventory.getQtyOnHand() != null && inventory.getQtyReserved() != null) ? inventory.getQtyOnHand() - inventory.getQtyReserved() : null)")
     InventoryDto toDto(Inventory inventory);
 }

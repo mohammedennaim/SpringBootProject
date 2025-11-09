@@ -24,6 +24,7 @@ import com.example.digitallogistics.repository.SalesOrderLineRepository;
 import com.example.digitallogistics.repository.SalesOrderRepository;
 import com.example.digitallogistics.service.SalesOrderService;
 import com.example.digitallogistics.repository.ClientRepository;
+import com.example.digitallogistics.exception.ValidationException;
 
 @Service
 public class SalesOrderServiceImpl implements SalesOrderService {
@@ -62,7 +63,23 @@ public class SalesOrderServiceImpl implements SalesOrderService {
     @Override
     @Transactional
     public SalesOrder create(SalesOrderCreateDto dto) {
-    SalesOrder order = SalesOrder.builder()
+        // validate requested quantities against available inventory before creating order
+        for (SalesOrderLineCreateDto l : dto.lines) {
+            int available = inventoryRepository.findByProductId(l.productId).stream()
+                    .mapToInt(inv -> {
+                        int onHand = inv.getQtyOnHand() != null ? inv.getQtyOnHand() : 0;
+                        int reserved = inv.getQtyReserved() != null ? inv.getQtyReserved() : 0;
+                        return Math.max(0, onHand - reserved);
+                    }).sum();
+            if (l.quantity > available) {
+                // try to include SKU if product exists
+                Product p = productRepository.findById(l.productId).orElse(null);
+                String prodRef = p != null ? (p.getSku() != null ? p.getSku() : p.getId().toString()) : l.productId.toString();
+                throw new ValidationException("Insufficient inventory for product " + prodRef + ": requested=" + l.quantity + ", available=" + available);
+            }
+        }
+
+        SalesOrder order = SalesOrder.builder()
                 .status(OrderStatus.CREATED)
                 .createdAt(LocalDateTime.now())
                 .build();
@@ -117,11 +134,12 @@ public class SalesOrderServiceImpl implements SalesOrderService {
                     .toList();
 
             for (Inventory inv : inventories) {
-                int available = (inv.getQtyOnHand() != null ? inv.getQtyOnHand() : 0) - (inv.getQtyReserved() != null ? inv.getQtyReserved() : 0);
-                if (available <= 0) continue;
-                int take = Math.min(available, qtyToReserve);
+                // Reserve directly from qtyOnHand and add to qtyReserved without using a qtyAvailable field
+                int onHand = inv.getQtyOnHand() != null ? inv.getQtyOnHand() : 0;
+                if (onHand <= 0) continue;
+                int take = Math.min(onHand, qtyToReserve);
                 inv.setQtyReserved((inv.getQtyReserved() != null ? inv.getQtyReserved() : 0) + take);
-                inv.setQtyOnHand((inv.getQtyOnHand() != null ? inv.getQtyOnHand() : 0) - take);
+                inv.setQtyOnHand(onHand - take);
                 inventoryRepository.save(inv);
                 qtyToReserve -= take;
                 if (qtyToReserve <= 0) break;
