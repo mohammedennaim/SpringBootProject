@@ -44,6 +44,7 @@ public class ShipmentController {
     private final ShipmentService shipmentService;
 
     @GetMapping
+    @SuppressWarnings("null")
     @PreAuthorize("hasAnyRole('ADMIN', 'WAREHOUSE_MANAGER')")
     @Operation(summary = "Liste des expéditions", 
                description = "Récupère la liste paginée de toutes les expéditions")

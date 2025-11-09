@@ -47,6 +47,7 @@ public class CarrierController {
     private final CarrierService carrierService;
 
     @GetMapping
+    @SuppressWarnings("null")
     @PreAuthorize("hasAnyRole('ADMIN', 'WAREHOUSE_MANAGER')")
     @Operation(summary = "Liste des transporteurs", 
                description = "Récupère la liste paginée de tous les transporteurs avec filtres optionnels")

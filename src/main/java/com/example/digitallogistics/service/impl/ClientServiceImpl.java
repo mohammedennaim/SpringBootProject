@@ -29,6 +29,7 @@ public class ClientServiceImpl implements ClientService {
     }
 
     @Override
+    @SuppressWarnings("null")
     public Optional<Client> findById(UUID id) {
         return clientRepository.findById(id);
     }
@@ -62,6 +63,7 @@ public class ClientServiceImpl implements ClientService {
     }
 
     @Override
+    @SuppressWarnings("null")
     public Optional<Client> update(UUID id, Client client) {
         return clientRepository.findById(id).map(existing -> {
             existing.setName(client.getName());
@@ -70,8 +72,9 @@ public class ClientServiceImpl implements ClientService {
             return clientRepository.save(existing);
         });
     }
-
+    
     @Override
+    @SuppressWarnings("null")
     public void delete(UUID id) {
         clientRepository.deleteById(id);
     }

@@ -51,6 +51,7 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
 
     @Override
     @Transactional
+    @SuppressWarnings("null")
     public PurchaseOrder create(PurchaseOrderCreateDto dto) {
         PurchaseOrder po = PurchaseOrder.builder()
                 .status(PurchaseOrderStatus.CREATED)
@@ -79,12 +80,14 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
     }
 
     @Override
+    @SuppressWarnings("null")
     public Optional<PurchaseOrder> findById(UUID id) {
         return purchaseOrderRepository.findById(id);
     }
 
     @Override
     @Transactional
+    @SuppressWarnings("null")
     public PurchaseOrder approve(UUID id) {
         PurchaseOrder po = purchaseOrderRepository.findById(id).orElseThrow(() -> new RuntimeException("PO not found"));
         if (po.getStatus() != PurchaseOrderStatus.CREATED) {
@@ -94,6 +97,9 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
         return purchaseOrderRepository.save(po);
     }
 
+
+    
+    @SuppressWarnings("null")
     @Override
     @Transactional
     public PurchaseOrder receive(UUID id, PurchaseOrderReceiveDto dto) {
@@ -111,10 +117,8 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
             totalRequested += poline.getQuantity() != null ? poline.getQuantity() : 0;
             totalReceived += toReceive;
 
-            // update inventory: pick first inventory row for product and add to qtyOnHand
             List<Inventory> inventories = inventoryRepository.findByProductId(poline.getProduct().getId());
             if (inventories.isEmpty()) {
-                // create a new inventory record? For simplicity, skip creating new and continue
                 continue;
             }
             Inventory inv = inventories.get(0);
@@ -126,6 +130,7 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
         return purchaseOrderRepository.save(po);
     }
 
+    @SuppressWarnings("null")
     @Override
     @Transactional
     public PurchaseOrder cancel(UUID id) {
