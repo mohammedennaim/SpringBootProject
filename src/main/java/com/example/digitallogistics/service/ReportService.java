@@ -7,9 +7,7 @@ import java.time.LocalDate;
 import java.util.UUID;
 
 public interface ReportService {
-
     OrderReportDto getOrderReport(LocalDate fromDate, LocalDate toDate);
     InventoryReportDto getInventoryReport(UUID warehouseId);
-
     ShipmentReportDto getShipmentReport(LocalDate fromDate, LocalDate toDate, UUID carrierId);
 }

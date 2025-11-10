@@ -1,8 +1,15 @@
 package com.example.digitallogistics.service.impl;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import com.example.digitallogistics.model.entity.Inventory;
+import com.example.digitallogistics.model.entity.SalesOrderLine;
+import com.example.digitallogistics.model.enums.OrderStatus;
+import com.example.digitallogistics.repository.InventoryRepository;
+import com.example.digitallogistics.repository.SalesOrderLineRepository;
+import com.example.digitallogistics.repository.SalesOrderRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -15,10 +22,14 @@ import com.example.digitallogistics.service.ProductService;
 public class ProductServiceImpl implements ProductService {
 
     private final ProductRepository productRepository;
+    private final InventoryRepository inventoryRepository;
+    private final SalesOrderLineRepository salesOrderLineRepository;
     private final com.example.digitallogistics.service.InventoryService inventoryService;
 
-    public ProductServiceImpl(ProductRepository productRepository, com.example.digitallogistics.service.InventoryService inventoryService) {
+    public ProductServiceImpl(ProductRepository productRepository, InventoryRepository inventoryRepository, SalesOrderLineRepository salesOrderLineRepository, com.example.digitallogistics.service.InventoryService inventoryService) {
         this.productRepository = productRepository;
+        this.inventoryRepository = inventoryRepository;
+        this.salesOrderLineRepository = salesOrderLineRepository;
         this.inventoryService = inventoryService;
     }
 
@@ -70,5 +81,16 @@ public class ProductServiceImpl implements ProductService {
 
         return productRepository.findByActiveAndSkuContainingIgnoreCaseOrActiveAndNameContainingIgnoreCaseOrActiveAndCategoryContainingIgnoreCase(
                 active, term, active, term, active, term, pageable);
+    }
+    @Override
+    public boolean desactivate(String sku){
+        Optional<Product> optProduct = productRepository.findBySku(sku);
+        if (optProduct.isEmpty()) return false;
+        Product product = optProduct.get();
+        List<Inventory> inventories = inventoryRepository.findByProductId(product.getId());
+        List<Inventory> inventoriesFilter = inventories.stream().filter(i -> i.getQtyReserved()>0).toList();
+        List<SalesOrderLine> salesOrderLines = salesOrderLineRepository.findByProductId(product.getId());
+        List<SalesOrderLine> salesOrderLinesFilter = salesOrderLines.stream().filter(s->s.getSalesOrder().getStatus().equals(OrderStatus.RESERVED) || s.getSalesOrder().getStatus().equals(OrderStatus.CREATED)).toList();
+        return inventoriesFilter.isEmpty() || salesOrderLinesFilter.isEmpty();
     }
 }

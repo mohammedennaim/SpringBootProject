@@ -16,8 +16,5 @@ public interface InventoryService {
     Integer getAvailableQuantity(UUID productId);
     Integer getAvailableQuantityInWarehouse(UUID warehouseId, UUID productId);
     void adjustProductTotal(java.util.UUID productId, int targetTotal);
-    /**
-     * Update an existing inventory by id. Will set qtyOnHand and qtyReserved and can change warehouse/product references.
-     */
     Inventory updateInventory(UUID id, UUID warehouseId, UUID productId, Integer qtyOnHand, Integer qtyReserved);
 }

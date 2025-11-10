@@ -11,14 +11,9 @@ import com.example.digitallogistics.model.enums.PurchaseOrderStatus;
 
 public interface PurchaseOrderService {
     List<PurchaseOrder> findAll(Optional<UUID> supplierId, Optional<PurchaseOrderStatus> status);
-
     PurchaseOrder create(PurchaseOrderCreateDto dto);
-
     Optional<PurchaseOrder> findById(UUID id);
-
     PurchaseOrder approve(UUID id);
-
     PurchaseOrder receive(UUID id, PurchaseOrderReceiveDto dto);
-
     PurchaseOrder cancel(UUID id);
 }
