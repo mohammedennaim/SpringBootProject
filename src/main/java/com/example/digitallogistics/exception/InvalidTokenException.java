@@ -1,8 +1,5 @@
 package com.example.digitallogistics.exception;
 
-/**
- * Exception thrown when JWT token is invalid, expired, or malformed
- */
 public class InvalidTokenException extends RuntimeException {
     
     public InvalidTokenException(String message) {
