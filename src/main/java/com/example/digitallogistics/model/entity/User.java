@@ -15,10 +15,10 @@ import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.experimental.SuperBuilder;
 
 @Entity
 @Table(name = "users")
@@ -27,7 +27,7 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
+@SuperBuilder
 public class User {
     @Id
     @Column(name = "id")
@@ -47,16 +47,13 @@ public class User {
     @Column(name = "active")
     private boolean active;
 
-    // Keep id/role initialization in a single PrePersist callback to avoid
-    // the JPA limitation that only one callback method may be annotated per
-    // lifecycle event on the same bean class in this environment.
+ 
     @PrePersist
     public void prePersist() {
         if (this.id == null) {
             this.id = UUID.randomUUID();
         }
 
-        // Ensure role column is consistent with subclass type when missing.
         if (this.role == null) {
             if (this instanceof Admin) {
                 this.role = Role.ADMIN;

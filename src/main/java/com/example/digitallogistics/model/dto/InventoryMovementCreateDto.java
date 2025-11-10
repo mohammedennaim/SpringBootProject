@@ -3,18 +3,26 @@ package com.example.digitallogistics.model.dto;
 import java.util.UUID;
 
 import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class InventoryMovementCreateDto {
     @NotNull
-    public UUID warehouseId;
+    private UUID warehouseId;
 
     @NotNull
-    public UUID productId;
+    private UUID productId;
 
     @NotNull
-    public Integer quantity;
+    private Integer quantity;
 
-    public String reference;
+    private String reference;
 
-    public String description;
+    private String description;
 }

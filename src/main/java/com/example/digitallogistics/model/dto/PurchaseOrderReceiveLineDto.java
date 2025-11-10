@@ -3,11 +3,19 @@ package com.example.digitallogistics.model.dto;
 import java.util.UUID;
 
 import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class PurchaseOrderReceiveLineDto {
     @NotNull
-    public UUID lineId;
+    private UUID lineId;
 
     @NotNull
-    public Integer receivedQuantity;
+    private Integer receivedQuantity;
 }

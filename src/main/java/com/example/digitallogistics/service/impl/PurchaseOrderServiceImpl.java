@@ -56,21 +56,21 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
         PurchaseOrder po = PurchaseOrder.builder()
                 .status(PurchaseOrderStatus.CREATED)
                 .createdAt(LocalDateTime.now())
-                .expectedDelivery(dto.expectedDelivery)
+        .expectedDelivery(dto.getExpectedDelivery())
                 .build();
 
-        supplierRepository.findById(dto.supplierId).ifPresent(po::setSupplier);
+    supplierRepository.findById(dto.getSupplierId()).ifPresent(po::setSupplier);
 
         PurchaseOrder saved = purchaseOrderRepository.save(po);
 
         List<PurchaseOrderLine> lines = new ArrayList<>();
-        for (var l : dto.lines) {
-            Product p = productRepository.findById(l.productId).orElse(null);
+    for (var l : dto.getLines()) {
+        Product p = productRepository.findById(l.getProductId()).orElse(null);
             PurchaseOrderLine line = PurchaseOrderLine.builder()
                     .product(p)
                     .purchaseOrder(saved)
-                    .quantity(l.quantity)
-                    .unitPrice(l.unitPrice)
+            .quantity(l.getQuantity())
+            .unitPrice(l.getUnitPrice())
                     .build();
             lines.add(purchaseOrderLineRepository.save(line));
         }
@@ -111,9 +111,9 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
         int totalRequested = 0;
         int totalReceived = 0;
 
-        for (var rl : dto.lines) {
-            var poline = purchaseOrderLineRepository.findById(rl.lineId).orElseThrow(() -> new RuntimeException("PO line not found"));
-            int toReceive = rl.receivedQuantity != null ? rl.receivedQuantity : 0;
+        for (var rl : dto.getLines()) {
+            var poline = purchaseOrderLineRepository.findById(rl.getLineId()).orElseThrow(() -> new RuntimeException("PO line not found"));
+            int toReceive = rl.getReceivedQuantity() != null ? rl.getReceivedQuantity() : 0;
             totalRequested += poline.getQuantity() != null ? poline.getQuantity() : 0;
             totalReceived += toReceive;
 

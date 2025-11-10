@@ -64,15 +64,15 @@ public class SalesOrderServiceImpl implements SalesOrderService {
     @Transactional
     public SalesOrder create(SalesOrderCreateDto dto) {
         // validate requested quantities against total qtyOnHand before creating order
-        for (SalesOrderLineCreateDto l : dto.lines) {
-            int totalOnHand = inventoryRepository.findByProductId(l.productId).stream()
+        for (SalesOrderLineCreateDto l : dto.getLines()) {
+            int totalOnHand = inventoryRepository.findByProductId(l.getProductId()).stream()
                     .mapToInt(inv -> inv.getQtyOnHand() != null ? inv.getQtyOnHand() : 0)
                     .sum();
-            if (l.quantity > totalOnHand) {
+            if (l.getQuantity() > totalOnHand) {
                 // include product SKU if available for clearer message
-                Product p = productRepository.findById(l.productId).orElse(null);
-                String prodRef = p != null ? (p.getSku() != null ? p.getSku() : p.getId().toString()) : l.productId.toString();
-                throw new ValidationException("Insufficient inventory (qtyOnHand) for product " + prodRef + ": requested=" + l.quantity + ", totalOnHand=" + totalOnHand);
+                Product p = productRepository.findById(l.getProductId()).orElse(null);
+                String prodRef = p != null ? (p.getSku() != null ? p.getSku() : p.getId().toString()) : l.getProductId().toString();
+                throw new ValidationException("Insufficient inventory (qtyOnHand) for product " + prodRef + ": requested=" + l.getQuantity() + ", totalOnHand=" + totalOnHand);
             }
         }
 
@@ -82,17 +82,17 @@ public class SalesOrderServiceImpl implements SalesOrderService {
                 .createdAt(LocalDateTime.now())
                 .build();
 
-        clientRepository.findById(dto.clientId).ifPresent(order::setClient);
+        clientRepository.findById(dto.getClientId()).ifPresent(order::setClient);
 
         SalesOrder saved = salesOrderRepository.save(order);
 
         List<SalesOrderLine> lines = new ArrayList<>();
-        for (SalesOrderLineCreateDto l : dto.lines) {
+        for (SalesOrderLineCreateDto l : dto.getLines()) {
             @SuppressWarnings("null")
-            Product p = productRepository.findById(l.productId).orElse(null);
+            Product p = productRepository.findById(l.getProductId()).orElse(null);
             SalesOrderLine line = SalesOrderLine.builder()
                     .product(p)
-                    .quantity(l.quantity)
+                    .quantity(l.getQuantity())
                     .unitPrice(p != null ? p.getUnitPrice() : null)
                     .salesOrder(saved)
                     .backorder(false)

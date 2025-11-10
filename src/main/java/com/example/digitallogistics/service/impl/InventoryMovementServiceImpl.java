@@ -38,11 +38,11 @@ public class InventoryMovementServiceImpl implements InventoryMovementService {
 
     @SuppressWarnings("null")
     protected InventoryMovement recordMovement(MovementType type, InventoryMovementCreateDto dto) {
-        int adj = dto.quantity != null ? dto.quantity : 0;
+        int adj = dto.getQuantity() != null ? dto.getQuantity() : 0;
         if (type == MovementType.OUTBOUND) adj = -adj;
 
-        List<Inventory> inventories = inventoryRepository.findByWarehouseId(dto.warehouseId).stream()
-                .filter(i -> i.getProduct() != null && i.getProduct().getId().equals(dto.productId))
+        List<Inventory> inventories = inventoryRepository.findByWarehouseId(dto.getWarehouseId()).stream()
+                .filter(i -> i.getProduct() != null && i.getProduct().getId().equals(dto.getProductId()))
                 .collect(Collectors.toList());
 
         if (!inventories.isEmpty()) {
@@ -61,10 +61,10 @@ public class InventoryMovementServiceImpl implements InventoryMovementService {
 
         InventoryMovement m = InventoryMovement.builder()
                 .type(type)
-                .quantity(dto.quantity)
+        .quantity(dto.getQuantity())
                 .occurredAt(LocalDateTime.now())
-                .reference(dto.reference)
-                .description(dto.description)
+        .reference(dto.getReference())
+        .description(dto.getDescription())
                 .build();
         return inventoryMovementRepository.save(m);
     }

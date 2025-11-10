@@ -8,6 +8,8 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.experimental.SuperBuilder;
+import lombok.Builder.Default;
 
 @Entity
 @Table(name = "managers")
@@ -16,23 +18,18 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@SuperBuilder
 public class Manager extends User {
 
-    // Un manager peut gérer plusieurs entrepôts
     @OneToMany(mappedBy = "manager", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @Default
     private List<Warehouse> warehouses = new ArrayList<>();
 
-    /**
-     * Ajouter un entrepôt à ce manager
-     */
     public void addWarehouse(Warehouse warehouse) {
         warehouses.add(warehouse);
         warehouse.setManager(this);
     }
 
-    /**
-     * Retirer un entrepôt de ce manager
-     */
     public void removeWarehouse(Warehouse warehouse) {
         warehouses.remove(warehouse);
         warehouse.setManager(null);

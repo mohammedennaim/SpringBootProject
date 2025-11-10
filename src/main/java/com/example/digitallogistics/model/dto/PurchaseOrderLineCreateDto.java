@@ -4,13 +4,21 @@ import java.math.BigDecimal;
 import java.util.UUID;
 
 import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class PurchaseOrderLineCreateDto {
     @NotNull
-    public UUID productId;
+    private UUID productId;
 
     @NotNull
-    public Integer quantity;
+    private Integer quantity;
 
-    public BigDecimal unitPrice;
+    private BigDecimal unitPrice;
 }
