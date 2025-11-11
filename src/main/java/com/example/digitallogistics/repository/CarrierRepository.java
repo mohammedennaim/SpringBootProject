@@ -16,24 +16,17 @@ import com.example.digitallogistics.model.enums.CarrierStatus;
 
 @Repository
 public interface CarrierRepository extends JpaRepository<Carrier, UUID> {
-
-    // Recherche par code (unique)
     Optional<Carrier> findByCode(String code);
 
-    // Vérifier l'existence par code
     boolean existsByCode(String code);
 
-    // Recherche par nom (insensible à la casse)
     Page<Carrier> findByNameContainingIgnoreCase(String name, Pageable pageable);
 
-    // Recherche par statut
     Page<Carrier> findByStatus(CarrierStatus status, Pageable pageable);
 
-    // Recherche des transporteurs actifs uniquement
     @Query("SELECT c FROM Carrier c WHERE c.status = 'ACTIVE'")
     List<Carrier> findAllActive();
 
-    // Recherche avec filtres combinés
     @Query("SELECT c FROM Carrier c WHERE " +
            "(:status IS NULL OR c.status = :status) AND " +
            "(:name IS NULL OR LOWER(c.name) LIKE LOWER(CONCAT('%', :name, '%')))")
@@ -42,14 +35,11 @@ public interface CarrierRepository extends JpaRepository<Carrier, UUID> {
         @Param("name") String name,
         Pageable pageable);
 
-    // Compter par statut
     long countByStatus(CarrierStatus status);
 
-    // Recherche par capacité minimale
     @Query("SELECT c FROM Carrier c WHERE c.maxDailyShipments >= :minCapacity AND c.status = 'ACTIVE'")
     List<Carrier> findByMinCapacity(@Param("minCapacity") Integer minCapacity);
 
-    // Recherche par plage de tarifs
     @Query("SELECT c FROM Carrier c WHERE " +
            "c.rate BETWEEN :minRate AND :maxRate AND " +
            "c.status = 'ACTIVE' " +
