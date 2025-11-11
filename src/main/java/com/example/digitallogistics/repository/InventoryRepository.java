@@ -9,4 +9,5 @@ import com.example.digitallogistics.model.entity.Inventory;
 public interface InventoryRepository extends JpaRepository<Inventory, UUID> {
     List<Inventory> findByWarehouseId(UUID id);
     List<Inventory> findByProductId(UUID id);
+    java.util.Optional<Inventory> findByWarehouseIdAndProductId(UUID warehouseId, UUID productId);
 }

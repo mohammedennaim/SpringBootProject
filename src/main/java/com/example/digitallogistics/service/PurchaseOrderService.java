@@ -14,6 +14,6 @@ public interface PurchaseOrderService {
     PurchaseOrder create(PurchaseOrderCreateDto dto);
     Optional<PurchaseOrder> findById(UUID id);
     PurchaseOrder approve(UUID id);
-    PurchaseOrder receive(UUID id, PurchaseOrderReceiveDto dto);
+    PurchaseOrder receive(UUID id, PurchaseOrderReceiveDto dto,UUID warehouseId);
     PurchaseOrder cancel(UUID id);
 }

@@ -15,6 +15,7 @@ import com.example.digitallogistics.model.entity.Inventory;
 import com.example.digitallogistics.model.entity.Product;
 import com.example.digitallogistics.model.entity.PurchaseOrder;
 import com.example.digitallogistics.model.entity.PurchaseOrderLine;
+import com.example.digitallogistics.model.entity.Warehouse;
 import com.example.digitallogistics.model.enums.PurchaseOrderStatus;
 import com.example.digitallogistics.repository.InventoryRepository;
 import com.example.digitallogistics.repository.ProductRepository;
@@ -31,15 +32,18 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
     private final SupplierRepository supplierRepository;
     private final ProductRepository productRepository;
     private final InventoryRepository inventoryRepository;
+    private final com.example.digitallogistics.repository.WarehouseRepository warehouseRepository;
 
     public PurchaseOrderServiceImpl(PurchaseOrderRepository purchaseOrderRepository,
             PurchaseOrderLineRepository purchaseOrderLineRepository, SupplierRepository supplierRepository,
-            ProductRepository productRepository, InventoryRepository inventoryRepository) {
+            ProductRepository productRepository, InventoryRepository inventoryRepository,
+            com.example.digitallogistics.repository.WarehouseRepository warehouseRepository) {
         this.purchaseOrderRepository = purchaseOrderRepository;
         this.purchaseOrderLineRepository = purchaseOrderLineRepository;
         this.supplierRepository = supplierRepository;
         this.productRepository = productRepository;
         this.inventoryRepository = inventoryRepository;
+        this.warehouseRepository = warehouseRepository;
     }
 
     @Override
@@ -102,28 +106,39 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
     @SuppressWarnings("null")
     @Override
     @Transactional
-    public PurchaseOrder receive(UUID id, PurchaseOrderReceiveDto dto) {
+    public PurchaseOrder receive(UUID id, PurchaseOrderReceiveDto dto, UUID warehouseId) {
         PurchaseOrder po = purchaseOrderRepository.findById(id).orElseThrow(() -> new RuntimeException("PO not found"));
         if (po.getStatus() != PurchaseOrderStatus.APPROVED && po.getStatus() != PurchaseOrderStatus.CREATED) {
             throw new RuntimeException("Only CREATED or APPROVED POs can be received");
         }
 
-        int totalRequested = 0;
-        int totalReceived = 0;
+    // track totals if needed in future
 
         for (var rl : dto.getLines()) {
             var poline = purchaseOrderLineRepository.findById(rl.getLineId()).orElseThrow(() -> new RuntimeException("PO line not found"));
             int toReceive = rl.getReceivedQuantity() != null ? rl.getReceivedQuantity() : 0;
-            totalRequested += poline.getQuantity() != null ? poline.getQuantity() : 0;
-            totalReceived += toReceive;
 
-            List<Inventory> inventories = inventoryRepository.findByProductId(poline.getProduct().getId());
-            if (inventories.isEmpty()) {
-                continue;
+            // Find inventory for the specific product in the target warehouse. Create if missing.
+            java.util.UUID productId = poline.getProduct() != null ? poline.getProduct().getId() : null;
+            Inventory inventory = null;
+            if (productId != null) {
+                inventory = inventoryRepository.findByWarehouseIdAndProductId(warehouseId, productId).orElse(null);
             }
-            Inventory inv = inventories.get(0);
-            inv.setQtyOnHand((inv.getQtyOnHand() != null ? inv.getQtyOnHand() : 0) + toReceive);
-            inventoryRepository.save(inv);
+
+            if (inventory == null) {
+                var wh = warehouseRepository.findById(warehouseId)
+                        .orElseThrow(() -> new RuntimeException("Warehouse not found"));
+                inventory = Inventory.builder()
+                        .warehouse(wh)
+                        .product(poline.getProduct())
+                        .qtyOnHand(0)
+                        .qtyReserved(0)
+                        .build();
+                inventory = inventoryRepository.save(inventory);
+            }
+
+            inventory.setQtyOnHand((inventory.getQtyOnHand() != null ? inventory.getQtyOnHand() : 0) + toReceive);
+            inventoryRepository.save(inventory);
         }
 
         po.setStatus(PurchaseOrderStatus.RECEIVED);

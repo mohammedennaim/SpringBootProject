@@ -71,8 +71,8 @@ public class PurchaseOrderController {
     }
 
     @PutMapping("/{id}/receive")
-    public ResponseEntity<PurchaseOrderDto> receive(@PathVariable UUID id, @RequestBody @Valid PurchaseOrderReceiveDto dto) {
-    PurchaseOrder updated = purchaseOrderService.receive(id, dto);
+    public ResponseEntity<PurchaseOrderDto> receive(@PathVariable UUID id, @RequestBody @Valid PurchaseOrderReceiveDto dto, @RequestParam UUID warehouseId) {
+    PurchaseOrder updated = purchaseOrderService.receive(id, dto, warehouseId);
     java.util.List<com.example.digitallogistics.model.entity.PurchaseOrderLine> lines = purchaseOrderLineRepository.findByPurchaseOrderId(updated.getId());
     return ResponseEntity.ok(PurchaseOrderMapper.toDto(updated, supplierMapper, lines));
     }
