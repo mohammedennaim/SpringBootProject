@@ -139,6 +139,7 @@
 			<artifactId>h2</artifactId>
 			<scope>test</scope>
 		</dependency>
+
 		<!-- Hibernate core is managed by Spring Boot starter parent; do not override to avoid version mismatches -->
 
 
@@ -150,6 +151,25 @@
 	<build>
 		<plugins>
 
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>0.8.12</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>report</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
 			<!-- 🔧 Compiler Plugin -->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -207,5 +227,13 @@
 			<url>https://repo.maven.apache.org/maven2</url>
 		</repository>
 	</repositories>
+
+	<!-- Plugin repositories (ensure build plugins like jacoco can be resolved) -->
+	<pluginRepositories>
+		<pluginRepository>
+			<id>central</id>
+			<url>https://repo.maven.apache.org/maven2</url>
+		</pluginRepository>
+	</pluginRepositories>
 
 </project>

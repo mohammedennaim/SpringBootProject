@@ -13,6 +13,26 @@ services:
       - ./src/main/resources/data.sql:/docker-entrypoint-initdb.d/data.sql:ro
     ports:
       - "${POSTGRES_PORT}:5432"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-postgres}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - logistics-net
+
+  # SonarQube service (optional)
+  sonar:
+    image: sonarqube:community
+    container_name: sonar
+    ports:
+      - "9000:9000"
+    volumes:
+      - sonar_data:/opt/sonarqube/data
+      - sonar_extensions:/opt/sonarqube/extensions
+    restart: unless-stopped
     networks:
       - logistics-net
 
@@ -26,6 +46,7 @@ services:
       - "${PGADMIN_PORT}:80"
     depends_on:
       - postgres
+    restart: unless-stopped
     networks:
       - logistics-net
     volumes:
@@ -58,10 +79,16 @@ services:
       - .:/workspace:rw
       - maven_repo:/root/.m2:rw
 
+    restart: unless-stopped
+
 volumes:
   pg_data:
   pgadmin_data:
   maven_repo:
+
+  # Sonar data/extension volumes
+  sonar_data:
+  sonar_extensions:
 
 networks:
   logistics-net:
