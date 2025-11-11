@@ -19,6 +19,6 @@ public interface ShipmentService {
     Page<ShipmentDto> getShipmentsByWarehouse(UUID warehouseId, Pageable pageable);
     ShipmentDto getShipmentByTrackingNumber(String trackingNumber);
     Page<ShipmentDto> getShipmentsByStatusAndWarehouse(
-        ShipmentStatus status, UUID warehouseId, Pageable pageable);
+    ShipmentStatus status, UUID warehouseId, Pageable pageable);
     void deleteShipment(UUID id);
 }
