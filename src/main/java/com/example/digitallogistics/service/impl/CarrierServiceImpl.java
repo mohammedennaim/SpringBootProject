@@ -122,8 +122,8 @@ public class CarrierServiceImpl implements CarrierService {
     public List<CarrierDto> getAllActiveCarriers() {
         List<Carrier> carriers = carrierRepository.findAllActive();
         return carriers.stream()
-                .map(carrierMapper::toDto)
-                .toList();
+            .map(carrierMapper::toDto)
+            .toList();
     }
 
     @SuppressWarnings("null")

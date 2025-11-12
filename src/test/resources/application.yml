@@ -14,14 +14,11 @@ spring:
         format_sql: true
   sql:
     init:
-      # Avoid executing production/postgres-only scripts (e.g. CREATE EXTENSION) during tests
       mode: never
-# Reduce logging noise in tests
 logging:
   level:
     org.hibernate.SQL: warn
     org.hibernate.type.descriptor.sql.BasicBinder: warn
 
-# Keep server port off in tests
 server:
   port: 0
