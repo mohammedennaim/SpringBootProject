@@ -58,8 +58,7 @@ public class ShipmentServiceImpl implements ShipmentService {
         if (shipmentRepository.existsByOrderId(createDto.getOrderId())) {
             throw new ValidationException("Order already has a shipment: " + createDto.getOrderId());
         }
-
-        @SuppressWarnings("null")
+        
         Warehouse warehouse = warehouseRepository.findById(createDto.getWarehouseId())
             .orElseThrow(() -> new ResourceNotFoundException("Warehouse not found with id: " + createDto.getWarehouseId()));
 
@@ -83,7 +82,6 @@ public class ShipmentServiceImpl implements ShipmentService {
             .shippedAt(LocalDateTime.now())
             .build();
 
-        @SuppressWarnings("null")
         Shipment savedShipment = shipmentRepository.save(shipment);
         return shipmentMapper.toDto(savedShipment);
     }

@@ -9,10 +9,7 @@ import com.example.digitallogistics.model.enums.MovementType;
 
 public interface InventoryMovementService {
     List<InventoryMovement> findAll(Optional<MovementType> type);
-
     InventoryMovement recordInbound(InventoryMovementCreateDto dto);
-
     InventoryMovement recordOutbound(InventoryMovementCreateDto dto);
-
     InventoryMovement recordAdjustment(InventoryMovementCreateDto dto);
 }

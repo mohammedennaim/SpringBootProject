@@ -16,8 +16,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder
 public class InventoryReportDto {
-
-    // Métriques générales du stock
     private Long totalProducts;
     private Long activeProducts;
     private Long inactiveProducts;
@@ -25,22 +23,18 @@ public class InventoryReportDto {
     private Long lowStockProducts;
     private Long overstockedProducts;
 
-    // Valeurs financières
     private BigDecimal totalInventoryValue;
     private BigDecimal lowStockValue;
     private BigDecimal overstockValue;
 
-    // Métriques de performance
-    private Double stockTurnoverRate; // Rotation du stock
-    private Double stockoutRate; // Taux de rupture
-    private Double fillRate; // Taux de service
+    private Double stockTurnoverRate;
+    private Double stockoutRate;
+    private Double fillRate;
 
-    // Top produits
     private List<ProductStockSummary> topSellingProducts;
     private List<ProductStockSummary> criticalStockProducts;
     private List<ProductStockSummary> deadStockProducts;
 
-    // Répartition par entrepôt
     private List<WarehouseStockSummary> warehouseStockSummaries;
 
     @Data

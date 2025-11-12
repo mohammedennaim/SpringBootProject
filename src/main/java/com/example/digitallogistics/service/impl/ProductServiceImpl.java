@@ -9,7 +9,6 @@ import com.example.digitallogistics.model.entity.SalesOrderLine;
 import com.example.digitallogistics.model.enums.OrderStatus;
 import com.example.digitallogistics.repository.InventoryRepository;
 import com.example.digitallogistics.repository.SalesOrderLineRepository;
-import com.example.digitallogistics.repository.SalesOrderRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;

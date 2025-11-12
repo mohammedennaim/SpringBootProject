@@ -24,6 +24,8 @@ import com.example.digitallogistics.model.mapper.PurchaseOrderMapper;
 import com.example.digitallogistics.model.mapper.SupplierMapper;
 import com.example.digitallogistics.model.enums.PurchaseOrderStatus;
 import com.example.digitallogistics.service.PurchaseOrderService;
+import com.example.digitallogistics.repository.PurchaseOrderLineRepository;
+import com.example.digitallogistics.model.entity.PurchaseOrderLine;
 
 @RestController
 @RequestMapping("/api/purchase-orders")
@@ -31,10 +33,10 @@ public class PurchaseOrderController {
 
     private final PurchaseOrderService purchaseOrderService;
     private final SupplierMapper supplierMapper;
-    private final com.example.digitallogistics.repository.PurchaseOrderLineRepository purchaseOrderLineRepository;
+    private final PurchaseOrderLineRepository purchaseOrderLineRepository;
 
     public PurchaseOrderController(PurchaseOrderService purchaseOrderService, SupplierMapper supplierMapper,
-            com.example.digitallogistics.repository.PurchaseOrderLineRepository purchaseOrderLineRepository) {
+            PurchaseOrderLineRepository purchaseOrderLineRepository) {
         this.purchaseOrderService = purchaseOrderService;
         this.supplierMapper = supplierMapper;
         this.purchaseOrderLineRepository = purchaseOrderLineRepository;
@@ -51,14 +53,14 @@ public class PurchaseOrderController {
     @PostMapping
     public ResponseEntity<PurchaseOrderDto> create(@RequestBody @Valid PurchaseOrderCreateDto dto) {
     PurchaseOrder created = purchaseOrderService.create(dto);
-    java.util.List<com.example.digitallogistics.model.entity.PurchaseOrderLine> lines = purchaseOrderLineRepository.findByPurchaseOrderId(created.getId());
+    java.util.List<PurchaseOrderLine> lines = purchaseOrderLineRepository.findByPurchaseOrderId(created.getId());
     return ResponseEntity.ok(PurchaseOrderMapper.toDto(created, supplierMapper, lines));
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<PurchaseOrderDto> get(@PathVariable UUID id) {
         return purchaseOrderService.findById(id).map(po -> {
-            java.util.List<com.example.digitallogistics.model.entity.PurchaseOrderLine> lines = purchaseOrderLineRepository.findByPurchaseOrderId(po.getId());
+            java.util.List<PurchaseOrderLine> lines = purchaseOrderLineRepository.findByPurchaseOrderId(po.getId());
             return ResponseEntity.ok(PurchaseOrderMapper.toDto(po, supplierMapper, lines));
         }).orElseGet(() -> ResponseEntity.notFound().build());
     }
@@ -66,21 +68,21 @@ public class PurchaseOrderController {
     @PutMapping("/{id}/approve")
     public ResponseEntity<PurchaseOrderDto> approve(@PathVariable UUID id) {
     PurchaseOrder updated = purchaseOrderService.approve(id);
-    java.util.List<com.example.digitallogistics.model.entity.PurchaseOrderLine> lines = purchaseOrderLineRepository.findByPurchaseOrderId(updated.getId());
+    java.util.List<PurchaseOrderLine> lines = purchaseOrderLineRepository.findByPurchaseOrderId(updated.getId());
     return ResponseEntity.ok(PurchaseOrderMapper.toDto(updated, supplierMapper, lines));
     }
 
     @PutMapping("/{id}/receive")
     public ResponseEntity<PurchaseOrderDto> receive(@PathVariable UUID id, @RequestBody @Valid PurchaseOrderReceiveDto dto, @RequestParam UUID warehouseId) {
     PurchaseOrder updated = purchaseOrderService.receive(id, dto, warehouseId);
-    java.util.List<com.example.digitallogistics.model.entity.PurchaseOrderLine> lines = purchaseOrderLineRepository.findByPurchaseOrderId(updated.getId());
+    java.util.List<PurchaseOrderLine> lines = purchaseOrderLineRepository.findByPurchaseOrderId(updated.getId());
     return ResponseEntity.ok(PurchaseOrderMapper.toDto(updated, supplierMapper, lines));
     }
 
     @PutMapping("/{id}/cancel")
     public ResponseEntity<PurchaseOrderDto> cancel(@PathVariable UUID id) {
     PurchaseOrder updated = purchaseOrderService.cancel(id);
-    java.util.List<com.example.digitallogistics.model.entity.PurchaseOrderLine> lines = purchaseOrderLineRepository.findByPurchaseOrderId(updated.getId());
+    java.util.List<PurchaseOrderLine> lines = purchaseOrderLineRepository.findByPurchaseOrderId(updated.getId());
     return ResponseEntity.ok(PurchaseOrderMapper.toDto(updated, supplierMapper, lines));
     }
 }

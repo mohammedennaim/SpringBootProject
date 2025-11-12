@@ -24,7 +24,6 @@ public class ManagerCreateDto {
     @NotBlank(message = "Le mot de passe est obligatoire")
     private String password;
 
-    // Liste des IDs des entrepôts que ce manager va gérer
     @Default
     private List<UUID> warehouseIds = new ArrayList<>();
 

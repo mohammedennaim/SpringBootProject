@@ -18,7 +18,6 @@ public class ReportServiceImpl implements ReportService {
     
     @Override
     public OrderReportDto getOrderReport(LocalDate fromDate, LocalDate toDate) {
-        // Définir les dates par défaut si non fournies
         LocalDate startDate = fromDate != null ? fromDate : LocalDate.now().minusDays(30);
         LocalDate endDate = toDate != null ? toDate : LocalDate.now();
         

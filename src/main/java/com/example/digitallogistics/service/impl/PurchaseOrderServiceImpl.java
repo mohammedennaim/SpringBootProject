@@ -15,7 +15,6 @@ import com.example.digitallogistics.model.entity.Inventory;
 import com.example.digitallogistics.model.entity.Product;
 import com.example.digitallogistics.model.entity.PurchaseOrder;
 import com.example.digitallogistics.model.entity.PurchaseOrderLine;
-import com.example.digitallogistics.model.entity.Warehouse;
 import com.example.digitallogistics.model.enums.PurchaseOrderStatus;
 import com.example.digitallogistics.repository.InventoryRepository;
 import com.example.digitallogistics.repository.ProductRepository;
@@ -23,6 +22,7 @@ import com.example.digitallogistics.repository.PurchaseOrderLineRepository;
 import com.example.digitallogistics.repository.PurchaseOrderRepository;
 import com.example.digitallogistics.repository.SupplierRepository;
 import com.example.digitallogistics.service.PurchaseOrderService;
+import com.example.digitallogistics.repository.WarehouseRepository;
 
 @Service
 public class PurchaseOrderServiceImpl implements PurchaseOrderService {
@@ -32,12 +32,12 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
     private final SupplierRepository supplierRepository;
     private final ProductRepository productRepository;
     private final InventoryRepository inventoryRepository;
-    private final com.example.digitallogistics.repository.WarehouseRepository warehouseRepository;
+    private final WarehouseRepository warehouseRepository;
 
     public PurchaseOrderServiceImpl(PurchaseOrderRepository purchaseOrderRepository,
             PurchaseOrderLineRepository purchaseOrderLineRepository, SupplierRepository supplierRepository,
             ProductRepository productRepository, InventoryRepository inventoryRepository,
-            com.example.digitallogistics.repository.WarehouseRepository warehouseRepository) {
+            WarehouseRepository warehouseRepository) {
         this.purchaseOrderRepository = purchaseOrderRepository;
         this.purchaseOrderLineRepository = purchaseOrderLineRepository;
         this.supplierRepository = supplierRepository;
@@ -112,14 +112,11 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
             throw new RuntimeException("Only CREATED or APPROVED POs can be received");
         }
 
-    // track totals if needed in future
-
         for (var rl : dto.getLines()) {
             var poline = purchaseOrderLineRepository.findById(rl.getLineId()).orElseThrow(() -> new RuntimeException("PO line not found"));
             int toReceive = rl.getReceivedQuantity() != null ? rl.getReceivedQuantity() : 0;
 
-            // Find inventory for the specific product in the target warehouse. Create if missing.
-            java.util.UUID productId = poline.getProduct() != null ? poline.getProduct().getId() : null;
+            UUID productId = poline.getProduct() != null ? poline.getProduct().getId() : null;
             Inventory inventory = null;
             if (productId != null) {
                 inventory = inventoryRepository.findByWarehouseIdAndProductId(warehouseId, productId).orElse(null);

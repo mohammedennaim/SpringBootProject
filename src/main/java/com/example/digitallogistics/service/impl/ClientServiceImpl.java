@@ -6,7 +6,6 @@ import java.util.UUID;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-
 import com.example.digitallogistics.model.entity.Client;
 import com.example.digitallogistics.model.enums.Role;
 import com.example.digitallogistics.repository.ClientRepository;

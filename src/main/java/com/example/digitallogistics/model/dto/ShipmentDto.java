@@ -15,7 +15,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder
 public class ShipmentDto {
-    
     private UUID id;
     private UUID orderId;
     private WarehouseDto warehouse;

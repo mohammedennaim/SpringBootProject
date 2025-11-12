@@ -22,9 +22,6 @@ import java.util.stream.Collectors;
 @ControllerAdvice
 public class GlobalExceptionHandler {
 
-    /**
-     * Handle validation errors from @Valid
-     */
     @ExceptionHandler(MethodArgumentNotValidException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ResponseEntity<Map<String, Object>> handleValidation(MethodArgumentNotValidException ex) {
@@ -38,16 +35,13 @@ public class GlobalExceptionHandler {
             .collect(Collectors.toMap(
                 error -> error.getField(),
                 error -> error.getDefaultMessage() != null ? error.getDefaultMessage() : "Invalid value",
-                (existing, replacement) -> existing // Keep first error if duplicate field
+                (existing, replacement) -> existing
             ));
         
         body.put("errors", errors);
         return ResponseEntity.badRequest().body(body);
     }
 
-    /**
-     * Handle resource not found
-     */
     @ExceptionHandler(ResourceNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ResponseEntity<Map<String, Object>> handleResourceNotFound(ResourceNotFoundException ex) {
@@ -58,9 +52,6 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(body);
     }
 
-    /**
-     * Handle custom validation exceptions
-     */
     @ExceptionHandler(ValidationException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ResponseEntity<Map<String, Object>> handleValidationException(ValidationException ex) {
@@ -91,9 +82,6 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(body);
     }
 
-    /**
-     * Handle access denied (403)
-     */
     @ExceptionHandler(AccessDeniedException.class)
     @ResponseStatus(HttpStatus.FORBIDDEN)
     public ResponseEntity<Map<String, Object>> handleAccessDenied(AccessDeniedException ex) {
@@ -104,9 +92,6 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(body);
     }
 
-    /**
-     * Handle authentication errors (401)
-     */
     @ExceptionHandler({AuthenticationException.class, BadCredentialsException.class})
     @ResponseStatus(HttpStatus.UNAUTHORIZED)
     public ResponseEntity<Map<String, Object>> handleAuthentication(Exception ex) {
@@ -117,9 +102,6 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(body);
     }
 
-    /**
-     * Handle expired JWT tokens
-     */
     @ExceptionHandler(ExpiredJwtException.class)
     @ResponseStatus(HttpStatus.UNAUTHORIZED)
     public ResponseEntity<Map<String, Object>> handleExpiredJwt(ExpiredJwtException ex) {
@@ -130,9 +112,6 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(body);
     }
 
-    /**
-     * Handle malformed or invalid JWT tokens
-     */
     @ExceptionHandler({MalformedJwtException.class, SignatureException.class})
     @ResponseStatus(HttpStatus.UNAUTHORIZED)
     public ResponseEntity<Map<String, Object>> handleInvalidJwt(Exception ex) {
@@ -143,9 +122,6 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(body);
     }
 
-    /**
-     * Catch-all for unexpected errors
-     */
     @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ResponseEntity<Map<String, Object>> handleOther(Exception ex) {
@@ -153,8 +129,7 @@ public class GlobalExceptionHandler {
         body.put("error", "internal_error");
         body.put("message", "An unexpected error occurred. Please try again later");
         body.put("timestamp", System.currentTimeMillis());
-        
-        // Log the full exception for debugging
+
         ex.printStackTrace();
         
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(body);

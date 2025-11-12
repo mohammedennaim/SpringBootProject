@@ -39,7 +39,6 @@ public class SupplierController {
         this.supplierMapper = supplierMapper;
     }
 
-    // GET /api/suppliers - Liste des fournisseurs
     @GetMapping
     @PreAuthorize("hasRole('ADMIN') or hasRole('WAREHOUSE_MANAGER')")
     public List<SupplierDto> list(@RequestParam(required = false) String search) {
@@ -56,7 +55,6 @@ public class SupplierController {
                 .collect(Collectors.toList());
     }
 
-    // POST /api/suppliers - Création d'un fournisseur
     @SuppressWarnings("null")
     @PostMapping
     @PreAuthorize("hasRole('ADMIN') or hasRole('WAREHOUSE_MANAGER')")
@@ -77,7 +75,6 @@ public class SupplierController {
         return ResponseEntity.ok(supplierMapper.toDto(supplier.get()));
     }
 
-    // PUT /api/suppliers/{id} - Mise à jour
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN') or hasRole('WAREHOUSE_MANAGER')")
     public ResponseEntity<SupplierDto> update(@PathVariable UUID id, @RequestBody @Valid SupplierUpdateDto updateDto) {
@@ -96,7 +93,6 @@ public class SupplierController {
         return ResponseEntity.notFound().build();
     }
 
-    // DELETE /api/suppliers/{id} - Suppression
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN') or hasRole('WAREHOUSE_MANAGER')")
     public ResponseEntity<Void> delete(@PathVariable UUID id) {

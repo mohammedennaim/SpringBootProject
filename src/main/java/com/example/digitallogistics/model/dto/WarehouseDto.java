@@ -16,6 +16,6 @@ public class WarehouseDto {
     private String code;
     private String name;
     private Boolean active;
-    private UUID managerId;  // ID du manager qui gère cet entrepôt
-    private String managerEmail;  // Email du manager (optionnel, pour affichage)
+    private UUID managerId;
+    private String managerEmail;
 }

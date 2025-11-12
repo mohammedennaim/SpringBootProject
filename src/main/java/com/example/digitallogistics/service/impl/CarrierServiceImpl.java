@@ -129,7 +129,6 @@ public class CarrierServiceImpl implements CarrierService {
     @SuppressWarnings("null")
     @Override
     public void deleteCarrier(UUID id) {
-        @SuppressWarnings("null")
         Carrier carrier = carrierRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("Carrier not found with id: " + id));
 

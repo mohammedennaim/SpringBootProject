@@ -19,7 +19,7 @@ public class ManagerDto {
     private String email;
 
     @Default
-    private List<UUID> warehouseIds = new ArrayList<>();  // Liste des IDs des entrepôts gérés
+    private List<UUID> warehouseIds = new ArrayList<>();
 
     private boolean active;
 }

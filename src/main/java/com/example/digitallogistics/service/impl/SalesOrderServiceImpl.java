@@ -33,7 +33,7 @@ public class SalesOrderServiceImpl implements SalesOrderService {
     private final SalesOrderLineRepository salesOrderLineRepository;
     private final InventoryRepository inventoryRepository;
     private final ProductRepository productRepository;
-    private final com.example.digitallogistics.repository.ClientRepository clientRepository;
+    private final ClientRepository clientRepository;
     private final UserMapper userMapper;
 
     public SalesOrderServiceImpl(SalesOrderRepository salesOrderRepository,
@@ -63,20 +63,17 @@ public class SalesOrderServiceImpl implements SalesOrderService {
     @Override
     @Transactional
     public SalesOrder create(SalesOrderCreateDto dto) {
-        // validate requested quantities against total qtyOnHand before creating order
         for (SalesOrderLineCreateDto l : dto.getLines()) {
             int totalOnHand = inventoryRepository.findByProductId(l.getProductId()).stream()
                     .mapToInt(inv -> inv.getQtyOnHand() != null ? inv.getQtyOnHand() : 0)
                     .sum();
             if (l.getQuantity() > totalOnHand) {
-                // include product SKU if available for clearer message
                 Product p = productRepository.findById(l.getProductId()).orElse(null);
                 String prodRef = p != null ? (p.getSku() != null ? p.getSku() : p.getId().toString()) : l.getProductId().toString();
                 throw new ValidationException("Insufficient inventory (qtyOnHand) for product " + prodRef + ": requested=" + l.getQuantity() + ", totalOnHand=" + totalOnHand);
             }
         }
 
-        // create order and immediately reserve quantities (decrement qtyOnHand, increment qtyReserved)
         SalesOrder order = SalesOrder.builder()
                 .status(OrderStatus.CREATED)
                 .createdAt(LocalDateTime.now())
@@ -88,7 +85,6 @@ public class SalesOrderServiceImpl implements SalesOrderService {
 
         List<SalesOrderLine> lines = new ArrayList<>();
         for (SalesOrderLineCreateDto l : dto.getLines()) {
-            @SuppressWarnings("null")
             Product p = productRepository.findById(l.getProductId()).orElse(null);
             SalesOrderLine line = SalesOrderLine.builder()
                     .product(p)
@@ -100,7 +96,6 @@ public class SalesOrderServiceImpl implements SalesOrderService {
             lines.add(salesOrderLineRepository.save(line));
         }
 
-        // perform reservation immediately
         for (SalesOrderLine line : lines) {
             int qtyToReserve = line.getQuantity();
             List<Inventory> inventories = inventoryRepository.findByProductId(line.getProduct().getId()).stream()
@@ -119,13 +114,11 @@ public class SalesOrderServiceImpl implements SalesOrderService {
             }
 
             if (qtyToReserve > 0) {
-                // mark backorder if unable to reserve fully (shouldn't happen because we validated totalOnHand)
                 line.setBackorder(true);
                 salesOrderLineRepository.save(line);
             }
         }
 
-        // set order status to RESERVED because create immediately reserved quantities
         saved.setStatus(OrderStatus.RESERVED);
         saved.setCreatedAt(LocalDateTime.now());
         return salesOrderRepository.save(saved);
@@ -138,14 +131,14 @@ public class SalesOrderServiceImpl implements SalesOrderService {
     }
 
     @Override
-    public List<com.example.digitallogistics.model.entity.SalesOrderLine> findLines(UUID orderId) {
+    public List<SalesOrderLine> findLines(UUID orderId) {
         return salesOrderLineRepository.findBySalesOrderId(orderId);
     }
 
     @Override
+    @SuppressWarnings("null")
     @Transactional
     public SalesOrder reserve(UUID id) {
-        @SuppressWarnings("null")
         SalesOrder order = salesOrderRepository.findById(id).orElseThrow(() -> new RuntimeException("Order not found"));
         if (order.getStatus() != OrderStatus.CREATED) {
             throw new RuntimeException("Only CREATED orders can be reserved");
@@ -159,7 +152,6 @@ public class SalesOrderServiceImpl implements SalesOrderService {
                     .toList();
 
             for (Inventory inv : inventories) {
-                // Reserve directly from qtyOnHand and add to qtyReserved without using a qtyAvailable field
                 int onHand = inv.getQtyOnHand() != null ? inv.getQtyOnHand() : 0;
                 if (onHand <= 0) continue;
                 int take = Math.min(onHand, qtyToReserve);
@@ -181,9 +173,9 @@ public class SalesOrderServiceImpl implements SalesOrderService {
     }
 
     @Override
+    @SuppressWarnings("null")
     @Transactional
     public SalesOrder ship(UUID id) {
-        @SuppressWarnings("null")
         SalesOrder order = salesOrderRepository.findById(id).orElseThrow(() -> new RuntimeException("Order not found"));
         if (order.getStatus() != OrderStatus.RESERVED) {
             throw new RuntimeException("Only RESERVED orders can be shipped");
@@ -207,16 +199,14 @@ public class SalesOrderServiceImpl implements SalesOrderService {
     }
 
     @Override
+    @SuppressWarnings("null")
     @Transactional
     public SalesOrder cancel(UUID id) {
-        @SuppressWarnings("null")
         SalesOrder order = salesOrderRepository.findById(id).orElseThrow(() -> new RuntimeException("Order not found"));
-        // release reserved quantities
         List<SalesOrderLine> lines = salesOrderLineRepository.findBySalesOrderId(order.getId());
         for (SalesOrderLine line : lines) {
             int qtyToRelease = line.getQuantity();
             List<Inventory> inventories = inventoryRepository.findByProductId(line.getProduct().getId());
-            // naive: add qty back to first inventory entries that have reserved amounts
             for (Inventory inv : inventories) {
                 int reserved = inv.getQtyReserved() != null ? inv.getQtyReserved() : 0;
                 if (reserved <= 0) continue;

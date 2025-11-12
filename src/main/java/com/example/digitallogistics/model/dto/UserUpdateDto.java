@@ -17,7 +17,6 @@ public class UserUpdateDto {
     private Role role;
     private Boolean active;
 
-    // Accept role as a case-insensitive String in JSON bodies (e.g. "client" -> Role.CLIENT)
     public void setRole(String role) {
         if (role == null) {
             this.role = null;

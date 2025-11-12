@@ -51,9 +51,7 @@ public class ManagerServiceImpl implements ManagerService {
 
     @Override
     public Manager create(Manager manager) {
-        // Encoder le mot de passe
         manager.setPassword(passwordEncoder.encode(manager.getPassword()));
-        // S'assurer que le rôle est WAREHOUSE_MANAGER
         manager.setRole(Role.WAREHOUSE_MANAGER);
         return managerRepository.save(manager);
     }
@@ -85,31 +83,22 @@ public class ManagerServiceImpl implements ManagerService {
         return managerRepository.findByEmail(email);
     }
 
-    /**
-     * Assigner un entrepôt à un manager
-     */
+    @SuppressWarnings("null")
     @Transactional
     public void assignWarehouse(UUID managerId, UUID warehouseId) {
-        @SuppressWarnings("null")
         Manager manager = managerRepository.findById(managerId)
             .orElseThrow(() -> new RuntimeException("Manager non trouvé"));
-        @SuppressWarnings("null")
         Warehouse warehouse = warehouseRepository.findById(warehouseId)
             .orElseThrow(() -> new RuntimeException("Entrepôt non trouvé"));
-        
         manager.addWarehouse(warehouse);
         managerRepository.save(manager);
     }
 
-    /**
-     * Retirer un entrepôt d'un manager
-     */
+    @SuppressWarnings("null")   
     @Transactional
     public void removeWarehouse(UUID managerId, UUID warehouseId) {
-        @SuppressWarnings("null")
         Manager manager = managerRepository.findById(managerId)
             .orElseThrow(() -> new RuntimeException("Manager non trouvé"));
-        @SuppressWarnings("null")
         Warehouse warehouse = warehouseRepository.findById(warehouseId)
             .orElseThrow(() -> new RuntimeException("Entrepôt non trouvé"));
         
@@ -117,18 +106,13 @@ public class ManagerServiceImpl implements ManagerService {
         managerRepository.save(manager);
     }
 
-    /**
-     * Assigner plusieurs entrepôts à un manager
-     */
     @SuppressWarnings("null")
     @Transactional
     public void assignWarehouses(UUID managerId, List<UUID> warehouseIds) {
-        @SuppressWarnings("null")
         Manager manager = managerRepository.findById(managerId)
             .orElseThrow(() -> new RuntimeException("Manager non trouvé"));
         
         for (UUID warehouseId : warehouseIds) {
-            @SuppressWarnings("null")
             Warehouse warehouse = warehouseRepository.findById(warehouseId)
                 .orElseThrow(() -> new RuntimeException("Entrepôt non trouvé: " + warehouseId));
             manager.addWarehouse(warehouse);

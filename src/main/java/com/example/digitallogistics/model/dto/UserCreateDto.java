@@ -29,11 +29,9 @@ public class UserCreateDto {
     @NotNull(message = "Role is required")
     private Role role;
 
-    // Make active nullable so we can use default=true when not provided by client
     @Default
     private Boolean active = true;
 
-    // New fields for Client creation
     private String name;
     private String contact;
 

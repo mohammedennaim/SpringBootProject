@@ -17,7 +17,6 @@ import lombok.NoArgsConstructor;
 public class SalesOrderCreateDto {
     @NotNull
     private UUID clientId;
-
     @NotEmpty
     private List<SalesOrderLineCreateDto> lines;
 }

@@ -93,7 +93,6 @@ public class JwtTokenProvider {
             Date expiry = Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).getBody().getExpiration();
             revokedTokens.put(token, expiry == null ? new Date() : expiry);
         } catch (Exception ex) {
-            // if token invalid/unparsable, still store a short-lived block to avoid reuse; set expiry to now
             revokedTokens.put(token, new Date());
         }
     }

@@ -16,9 +16,7 @@ import lombok.NoArgsConstructor;
 public class PurchaseOrderLineCreateDto {
     @NotNull
     private UUID productId;
-
     @NotNull
     private Integer quantity;
-
     private BigDecimal unitPrice;
 }

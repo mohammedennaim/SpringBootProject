@@ -112,7 +112,7 @@ public class InventoryServiceImpl implements InventoryService {
 
     @SuppressWarnings("null")
     @Override
-    public void adjustProductTotal(java.util.UUID productId, int targetTotal) {
+    public void adjustProductTotal(UUID productId, int targetTotal) {
         List<Inventory> inventories = findByProductId(productId);
         int currentTotal = inventories.stream().mapToInt(i -> i.getQtyOnHand() != null ? i.getQtyOnHand() : 0).sum();
         int reservedTotal = inventories.stream().mapToInt(i -> i.getQtyReserved() != null ? i.getQtyReserved() : 0).sum();
@@ -126,8 +126,8 @@ public class InventoryServiceImpl implements InventoryService {
         if (delta == 0) return;
 
         if (delta > 0) {
-            java.util.List<com.example.digitallogistics.model.entity.Warehouse> mains = warehouseRepository.findByCode("MAIN");
-            com.example.digitallogistics.model.entity.Warehouse main = mains.isEmpty() ? null : mains.get(0);
+            java.util.List<Warehouse> mains = warehouseRepository.findByCode("MAIN");
+            Warehouse main = mains.isEmpty() ? null : mains.get(0);
 
             Inventory targetInv = null;
             if (main != null) {
@@ -143,8 +143,7 @@ public class InventoryServiceImpl implements InventoryService {
                 targetInv.setQtyOnHand(current + delta);
                 inventoryRepository.save(targetInv);
             } else if (main != null) {
-                @SuppressWarnings("null")
-                java.util.Optional<com.example.digitallogistics.model.entity.Product> p = productRepository.findById(productId);
+                java.util.Optional<Product> p = productRepository.findById(productId);
                 if (p.isPresent()) {
                     Inventory newInv = Inventory.builder()
                             .warehouse(main)
@@ -197,7 +196,6 @@ public class InventoryServiceImpl implements InventoryService {
     public Inventory updateInventory(UUID id, UUID warehouseId, UUID productId, Integer qtyOnHand, Integer qtyReserved) {
         Optional<Inventory> opt = inventoryRepository.findById(id);
         if (opt.isEmpty()) {
-            // create new inventory with requested id
             Optional<Warehouse> wh = warehouseRepository.findById(warehouseId);
             Optional<Product> p = productRepository.findById(productId);
             if (wh.isEmpty()) throw new RuntimeException("Warehouse not found");

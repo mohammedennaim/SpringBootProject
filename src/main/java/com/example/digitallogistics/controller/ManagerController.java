@@ -6,6 +6,7 @@ import com.example.digitallogistics.model.dto.ManagerUpdateDto;
 import com.example.digitallogistics.model.entity.Manager;
 import com.example.digitallogistics.model.mapper.ManagerMapper;
 import com.example.digitallogistics.service.ManagerService;
+import com.example.digitallogistics.service.impl.ManagerServiceImpl;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -80,7 +81,6 @@ public class ManagerController {
     @Operation(summary = "Créer un nouveau manager")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ManagerDto> createManager(@Valid @RequestBody ManagerCreateDto managerCreateDto) {
-        // Vérifier si l'email existe déjà
         if (managerService.findByEmail(managerCreateDto.getEmail()).isPresent()) {
             return ResponseEntity.badRequest().build();
         }
@@ -95,7 +95,6 @@ public class ManagerController {
     @Operation(summary = "Mettre à jour un manager")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ManagerDto> updateManager(@PathVariable UUID id, @Valid @RequestBody ManagerUpdateDto managerUpdateDto) {
-        // Vérifier si l'email existe déjà (sauf pour le manager actuel)
         if (managerUpdateDto.getEmail() != null) {
             Optional<Manager> existingManager = managerService.findByEmail(managerUpdateDto.getEmail());
             if (existingManager.isPresent() && !existingManager.get().getId().equals(id)) {
@@ -132,7 +131,7 @@ public class ManagerController {
             @PathVariable UUID managerId, 
             @PathVariable UUID warehouseId) {
         try {
-            ((com.example.digitallogistics.service.impl.ManagerServiceImpl) managerService)
+            ((ManagerServiceImpl) managerService)
                 .assignWarehouse(managerId, warehouseId);
             Optional<Manager> updatedManager = managerService.findById(managerId);
             if (updatedManager.isPresent()) {
@@ -151,7 +150,7 @@ public class ManagerController {
             @PathVariable UUID managerId, 
             @PathVariable UUID warehouseId) {
         try {
-            ((com.example.digitallogistics.service.impl.ManagerServiceImpl) managerService)
+            ((ManagerServiceImpl) managerService)
                 .removeWarehouse(managerId, warehouseId);
             Optional<Manager> updatedManager = managerService.findById(managerId);
             if (updatedManager.isPresent()) {
@@ -170,7 +169,7 @@ public class ManagerController {
             @PathVariable UUID managerId, 
             @RequestBody List<UUID> warehouseIds) {
         try {
-            ((com.example.digitallogistics.service.impl.ManagerServiceImpl) managerService)
+            ((ManagerServiceImpl) managerService)
                 .assignWarehouses(managerId, warehouseIds);
             Optional<Manager> updatedManager = managerService.findById(managerId);
             if (updatedManager.isPresent()) {

@@ -15,7 +15,6 @@ import lombok.NoArgsConstructor;
 public class PurchaseOrderReceiveLineDto {
     @NotNull
     private UUID lineId;
-
     @NotNull
     private Integer receivedQuantity;
 }
