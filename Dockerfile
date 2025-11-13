@@ -31,8 +31,9 @@ FROM eclipse-temurin:17-jre-alpine
 
 WORKDIR /app
 
-# Copy the fat jar from the build stage with explicit name
-COPY --from=build /app/target/digital-logistics-1.0.0.jar app.jar
+# Copy the fat jar from the build stage using a wildcard so versioned jar names won't break the build
+# It will copy the first matching jar into app.jar inside the runtime image
+COPY --from=build /app/target/*.jar app.jar
 
 # Align with application's default port (overridable via SERVER_PORT env)
 EXPOSE 8093
