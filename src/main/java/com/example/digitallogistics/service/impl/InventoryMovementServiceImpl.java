@@ -29,10 +29,7 @@ public class InventoryMovementServiceImpl implements InventoryMovementService {
     }
 
     @Override
-    public List<InventoryMovement> findAll(Optional<MovementType> type) {
-        if (type.isPresent()) {
-            return inventoryMovementRepository.findByType(type.get());
-        }
+    public List<InventoryMovement> findAll() {
         return inventoryMovementRepository.findAll();
     }
 

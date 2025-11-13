@@ -69,28 +69,24 @@ public class CarrierServiceImpl implements CarrierService {
     }
 
     @Override
+    @SuppressWarnings("null")
     public CarrierDto updateCarrier(UUID id, CarrierUpdateDto updateDto) {
-        @SuppressWarnings("null")
         Carrier carrier = carrierRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("Carrier not found with id: " + id));
 
         carrierMapper.updateFromDto(updateDto, carrier);
-
-        @SuppressWarnings("null")
         Carrier updatedCarrier = carrierRepository.save(carrier);
         return carrierMapper.toDto(updatedCarrier);
     }
 
     @Override
+    @SuppressWarnings("null")
     public CarrierDto updateCarrierStatus(UUID id, CarrierStatusUpdateDto statusUpdate) {
-        @SuppressWarnings("null")
         Carrier carrier = carrierRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("Carrier not found with id: " + id));
 
         validateStatusTransition(carrier.getStatus(), statusUpdate.getStatus());
-
         carrier.setStatus(statusUpdate.getStatus());
-
         Carrier updatedCarrier = carrierRepository.save(carrier);
         return carrierMapper.toDto(updatedCarrier);
     }
@@ -126,8 +122,8 @@ public class CarrierServiceImpl implements CarrierService {
             .toList();
     }
 
-    @SuppressWarnings("null")
     @Override
+    @SuppressWarnings("null")
     public void deleteCarrier(UUID id) {
         Carrier carrier = carrierRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("Carrier not found with id: " + id));

@@ -60,16 +60,17 @@ public class ManagerServiceImpl implements ManagerService {
     @Override
     public Optional<Manager> update(UUID id, Manager manager) {
         return managerRepository.findById(id)
-                .map(existingManager -> {
-                    if (manager.getEmail() != null) {
-                        existingManager.setEmail(manager.getEmail());
-                    }
-                    if (manager.getPassword() != null && !manager.getPassword().isEmpty()) {
-                        existingManager.setPassword(passwordEncoder.encode(manager.getPassword()));
-                    }
-                    existingManager.setActive(manager.isActive());
-                    return managerRepository.save(existingManager);
-                });
+            .map(existingManager -> {
+                if (manager.getEmail() != null) {
+                    existingManager.setEmail(manager.getEmail());
+                }
+                if (manager.getPassword() != null && !manager.getPassword().isEmpty()) {
+                    existingManager.setPassword(passwordEncoder.encode(manager.getPassword()));
+                }
+                existingManager.setActive(manager.isActive());
+                return managerRepository.save(existingManager);
+            }
+        );
     }
 
     @SuppressWarnings("null")

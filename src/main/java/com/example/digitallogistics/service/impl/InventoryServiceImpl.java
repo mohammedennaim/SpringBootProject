@@ -110,8 +110,8 @@ public class InventoryServiceImpl implements InventoryService {
         return 0;
     }
 
-    @SuppressWarnings("null")
     @Override
+    @SuppressWarnings("null")
     public void adjustProductTotal(UUID productId, int targetTotal) {
         List<Inventory> inventories = findByProductId(productId);
         int currentTotal = inventories.stream().mapToInt(i -> i.getQtyOnHand() != null ? i.getQtyOnHand() : 0).sum();
@@ -146,11 +146,11 @@ public class InventoryServiceImpl implements InventoryService {
                 java.util.Optional<Product> p = productRepository.findById(productId);
                 if (p.isPresent()) {
                     Inventory newInv = Inventory.builder()
-                            .warehouse(main)
-                            .product(p.get())
-                            .qtyOnHand(Math.max(0, delta))
-                            .qtyReserved(0)
-                            .build();
+                        .warehouse(main)
+                        .product(p.get())
+                        .qtyOnHand(Math.max(0, delta))
+                        .qtyReserved(0)
+                        .build();
                     inventoryRepository.save(newInv);
                 } else {
                     throw new RuntimeException("Product not found");
@@ -168,8 +168,8 @@ public class InventoryServiceImpl implements InventoryService {
         } else {
             int toRemove = -delta;
             inventories.sort((a,b) -> Integer.compare(
-                    Math.max(0, (b.getQtyOnHand() != null ? b.getQtyOnHand() : 0) - (b.getQtyReserved() != null ? b.getQtyReserved() : 0)),
-                    Math.max(0, (a.getQtyOnHand() != null ? a.getQtyOnHand() : 0) - (a.getQtyReserved() != null ? a.getQtyReserved() : 0))
+                Math.max(0, (b.getQtyOnHand() != null ? b.getQtyOnHand() : 0) - (b.getQtyReserved() != null ? b.getQtyReserved() : 0)),
+                Math.max(0, (a.getQtyOnHand() != null ? a.getQtyOnHand() : 0) - (a.getQtyReserved() != null ? a.getQtyReserved() : 0))
             ));
 
             for (Inventory inv : inventories) {
@@ -201,12 +201,12 @@ public class InventoryServiceImpl implements InventoryService {
             if (wh.isEmpty()) throw new RuntimeException("Warehouse not found");
             if (p.isEmpty()) throw new RuntimeException("Product not found");
             Inventory newInv = Inventory.builder()
-                    .id(id)
-                    .warehouse(wh.get())
-                    .product(p.get())
-                    .qtyOnHand(qtyOnHand != null ? qtyOnHand : 0)
-                    .qtyReserved(qtyReserved != null ? qtyReserved : 0)
-                    .build();
+                .id(id)
+                .warehouse(wh.get())
+                .product(p.get())
+                .qtyOnHand(qtyOnHand != null ? qtyOnHand : 0)
+                .qtyReserved(qtyReserved != null ? qtyReserved : 0)
+                .build();
             return inventoryRepository.save(newInv);
         }
 

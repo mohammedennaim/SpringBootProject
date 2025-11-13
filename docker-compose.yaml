@@ -81,6 +81,21 @@ services:
 
     restart: unless-stopped
 
+  jenkins:
+    image: jenkins/jenkins:lts-jdk17
+    container_name: jenkins
+    ports:
+      - "8089:8080"
+      - "50000:50000"
+    environment:
+      JAVA_OPTS: -Djenkins.install.runSetupWizard=false
+    volumes:
+      - jenkins_home:/var/jenkins_home
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - logistics-net
+    restart: unless-stopped
+
 volumes:
   pg_data:
   pgadmin_data:
@@ -89,6 +104,7 @@ volumes:
   # Sonar data/extension volumes
   sonar_data:
   sonar_extensions:
+  jenkins_home:
 
 networks:
   logistics-net:

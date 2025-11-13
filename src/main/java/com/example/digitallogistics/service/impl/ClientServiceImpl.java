@@ -64,6 +64,9 @@ public class ClientServiceImpl implements ClientService {
     @Override
     @SuppressWarnings("null")
     public Optional<Client> update(UUID id, Client client) {
+         if (!clientRepository.existsById(id)) {
+            throw new IllegalArgumentException("Client not found with id: " + id);
+        }
         return clientRepository.findById(id).map(existing -> {
             existing.setName(client.getName());
             existing.setContact(client.getContact());
@@ -75,6 +78,9 @@ public class ClientServiceImpl implements ClientService {
     @Override
     @SuppressWarnings("null")
     public void delete(UUID id) {
+        if (!clientRepository.existsById(id)) {
+            throw new IllegalArgumentException("Client not found with id: " + id);
+        }
         clientRepository.deleteById(id);
     }
 }

@@ -1,7 +1,6 @@
 package com.example.digitallogistics.controller;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import jakarta.validation.Valid;
@@ -32,7 +31,7 @@ public class InventoryMovementController {
 
     @GetMapping
     public ResponseEntity<List<InventoryMovementDto>> list(@RequestParam(required = false) MovementType type) {
-        List<InventoryMovement> moves = inventoryMovementService.findAll(Optional.ofNullable(type));
+        List<InventoryMovement> moves = inventoryMovementService.findAll();
         List<InventoryMovementDto> dtos = moves.stream().map(m -> {
             InventoryMovementDto d = new InventoryMovementDto();
             d.setId(m.getId());
