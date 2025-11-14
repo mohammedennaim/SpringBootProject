@@ -3,12 +3,8 @@
 // - Optionally runs SonarQube analysis when SONAR_HOST and SONAR_TOKEN are provided
 
 pipeline {
-  agent {
-    docker {
-      image 'maven:3.9.3-jdk-17'
-      args '-v $HOME/.m2:/root/.m2'
-    }
-  }
+  // Run on any available node (avoid Docker agent because controller/node may not have Docker installed)
+  agent any
 
   environment {
     MVN_CMD = './mvnw'
