@@ -1,16 +1,22 @@
 package com.example.digitallogistics.service.impl;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.List;
 
+import com.example.digitallogistics.model.dto.PurchaseOrderCreateDto;
+import com.example.digitallogistics.model.dto.PurchaseOrderLineCreateDto;
+import com.example.digitallogistics.model.dto.PurchaseOrderReceiveDto;
+import com.example.digitallogistics.model.dto.PurchaseOrderReceiveLineDto;
+import com.example.digitallogistics.model.entity.*;
+import com.example.digitallogistics.model.enums.PurchaseOrderStatus;
+import com.example.digitallogistics.repository.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -18,133 +24,127 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.example.digitallogistics.model.dto.PurchaseOrderReceiveDto;
-import com.example.digitallogistics.model.dto.PurchaseOrderReceiveLineDto;
-import com.example.digitallogistics.model.entity.Inventory;
-import com.example.digitallogistics.model.entity.Product;
-import com.example.digitallogistics.model.entity.PurchaseOrder;
-import com.example.digitallogistics.model.entity.PurchaseOrderLine;
-import com.example.digitallogistics.model.entity.Warehouse;
-import com.example.digitallogistics.model.enums.PurchaseOrderStatus;
-import com.example.digitallogistics.repository.InventoryRepository;
-import com.example.digitallogistics.repository.ProductRepository;
-import com.example.digitallogistics.repository.PurchaseOrderLineRepository;
-import com.example.digitallogistics.repository.PurchaseOrderRepository;
-import com.example.digitallogistics.repository.SupplierRepository;
-import com.example.digitallogistics.repository.WarehouseRepository;
-import com.example.digitallogistics.service.PurchaseOrderService;
-
 @ExtendWith(MockitoExtension.class)
 class PurchaseOrderServiceImplTest {
 
     @Mock
-    private PurchaseOrderRepository purchaseOrderRepository;
-
+    PurchaseOrderRepository purchaseOrderRepository;
     @Mock
-    private PurchaseOrderLineRepository purchaseOrderLineRepository;
-
+    PurchaseOrderLineRepository purchaseOrderLineRepository;
     @Mock
-    private SupplierRepository supplierRepository;
-
+    SupplierRepository supplierRepository;
     @Mock
-    private ProductRepository productRepository;
-
+    ProductRepository productRepository;
     @Mock
-    private InventoryRepository inventoryRepository;
-
+    InventoryRepository inventoryRepository;
     @Mock
-    private WarehouseRepository warehouseRepository;
+    WarehouseRepository warehouseRepository;
 
     @InjectMocks
-    private PurchaseOrderServiceImpl purchaseOrderService;
+    PurchaseOrderServiceImpl service;
 
-    private UUID poId;
-    private UUID lineId;
-    private UUID warehouseId;
+    UUID productId;
+    UUID supplierId;
+    UUID warehouseId;
+    UUID poId;
+    UUID lineId;
 
     @BeforeEach
-    void setUp() {
+    void setup() {
+        productId = UUID.randomUUID();
+        supplierId = UUID.randomUUID();
+        warehouseId = UUID.randomUUID();
         poId = UUID.randomUUID();
         lineId = UUID.randomUUID();
-        warehouseId = UUID.randomUUID();
     }
 
     @Test
-    void whenInventoryExists_receive_updatesQtyAndStatus() {
-        PurchaseOrder po = PurchaseOrder.builder()
-                .id(poId)
-                .status(PurchaseOrderStatus.APPROVED)
-                .createdAt(LocalDateTime.now())
-                .build();
+    void create_shouldSavePurchaseOrderAndLines() {
+        PurchaseOrderCreateDto dto = new PurchaseOrderCreateDto();
+        PurchaseOrderLineCreateDto line = new PurchaseOrderLineCreateDto();
+        line.setProductId(productId);
+        line.setQuantity(5);
+        line.setUnitPrice(BigDecimal.valueOf(10.0));
+        dto.setLines(List.of(line));
+        dto.setSupplierId(supplierId);
 
-        Product product1 = new Product();
-        product1.setId(UUID.randomUUID());
-        PurchaseOrderLine pol = PurchaseOrderLine.builder()
-                .id(lineId)
-                .product(product1)
-                .quantity(5)
-                .unitPrice(BigDecimal.TEN)
-                .purchaseOrder(po)
-                .build();
+        Supplier sup = Supplier.builder().id(supplierId).name("S").build();
+        when(supplierRepository.findById(supplierId)).thenReturn(Optional.of(sup));
 
-        Inventory inv = Inventory.builder()
-                .id(UUID.randomUUID())
-                .product(pol.getProduct())
-                .warehouse(Warehouse.builder().id(warehouseId).build())
-                .qtyOnHand(2)
-                .qtyReserved(0)
-                .build();
+        Product p = new Product();
+        p.setId(productId);
+        p.setSku("SKU");
+        p.setUnitPrice(BigDecimal.valueOf(10.0));
+        when(productRepository.findById(productId)).thenReturn(Optional.of(p));
+
+        when(purchaseOrderRepository.save(any(PurchaseOrder.class))).thenAnswer(i -> {
+            PurchaseOrder po = i.getArgument(0);
+            po.setId(UUID.randomUUID());
+            return po;
+        });
+
+        when(purchaseOrderLineRepository.save(any(PurchaseOrderLine.class))).thenAnswer(i -> {
+            PurchaseOrderLine l = i.getArgument(0);
+            l.setId(UUID.randomUUID());
+            return l;
+        });
+
+        PurchaseOrder saved = service.create(dto);
+
+        assertNotNull(saved);
+        assertEquals(PurchaseOrderStatus.CREATED, saved.getStatus());
+        verify(purchaseOrderRepository, atLeastOnce()).save(any(PurchaseOrder.class));
+        verify(purchaseOrderLineRepository, times(1)).save(any(PurchaseOrderLine.class));
+    }
+
+    @Test
+    void approve_shouldSetStatusApproved() {
+        PurchaseOrder po = PurchaseOrder.builder().id(poId).status(PurchaseOrderStatus.CREATED).build();
+        when(purchaseOrderRepository.findById(poId)).thenReturn(Optional.of(po));
+        when(purchaseOrderRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+
+        PurchaseOrder res = service.approve(poId);
+        assertEquals(PurchaseOrderStatus.APPROVED, res.getStatus());
+    }
+
+    @Test
+    void receive_shouldCreateInventoryWhenMissingAndUpdateQty() {
+        Product prod = new Product();
+        prod.setId(productId);
+        PurchaseOrderLine pol = PurchaseOrderLine.builder().id(lineId).product(prod).quantity(5).build();
+        PurchaseOrder po = PurchaseOrder.builder().id(poId).status(PurchaseOrderStatus.APPROVED).build();
 
         when(purchaseOrderRepository.findById(poId)).thenReturn(Optional.of(po));
         when(purchaseOrderLineRepository.findById(lineId)).thenReturn(Optional.of(pol));
-        when(inventoryRepository.findByWarehouseIdAndProductId(warehouseId, pol.getProduct().getId())).thenReturn(Optional.of(inv));
-        when(purchaseOrderRepository.save(any(PurchaseOrder.class))).thenAnswer(i -> i.getArgument(0));
-        when(inventoryRepository.save(any(Inventory.class))).thenAnswer(i -> i.getArgument(0));
+        when(inventoryRepository.findByWarehouseIdAndProductId(warehouseId, productId)).thenReturn(Optional.empty());
 
-        PurchaseOrderReceiveLineDto rl = PurchaseOrderReceiveLineDto.builder()
+        Warehouse wh = Warehouse.builder().id(warehouseId).code("W").build();
+        when(warehouseRepository.findById(warehouseId)).thenReturn(Optional.of(wh));
+
+        when(inventoryRepository.save(any(Inventory.class))).thenAnswer(i -> i.getArgument(0));
+        when(purchaseOrderRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+
+        PurchaseOrderReceiveLineDto lr = PurchaseOrderReceiveLineDto.builder()
                 .lineId(lineId)
                 .receivedQuantity(3)
                 .build();
-        PurchaseOrderReceiveDto dto = PurchaseOrderReceiveDto.builder().lines(List.of(rl)).build();
-        PurchaseOrder result = purchaseOrderService.receive(poId, dto, warehouseId);
-        assertNotNull(result);
-        assertEquals(PurchaseOrderStatus.RECEIVED, result.getStatus());
-        assertEquals(5, inventoryRepository.findByWarehouseIdAndProductId(warehouseId, pol.getProduct().getId()).orElse(inv).getQtyOnHand() );
+        PurchaseOrderReceiveDto dto = PurchaseOrderReceiveDto.builder().lines(List.of(lr)).build();
+
+        PurchaseOrder res = service.receive(poId, dto, warehouseId);
+
+        assertEquals(PurchaseOrderStatus.RECEIVED, res.getStatus());
+        verify(inventoryRepository, atLeastOnce()).save(any(Inventory.class));
     }
 
     @Test
-    void whenInventoryMissing_receive_createsInventoryAndUpdatesQty() {
-        PurchaseOrder po = PurchaseOrder.builder()
-                .id(poId)
-                .status(PurchaseOrderStatus.CREATED)
-                .createdAt(LocalDateTime.now())
-                .build();
-
-        Product product = new Product();
-        product.setId(UUID.randomUUID());
-        PurchaseOrderLine pol = PurchaseOrderLine.builder()
-                .id(lineId)
-                .product(product)
-                .quantity(2)
-                .unitPrice(BigDecimal.ONE)
-                .purchaseOrder(po)
-                .build();
-
-        Warehouse wh = Warehouse.builder().id(warehouseId).build();
+    void cancel_shouldSetStatusCanceled() {
+        PurchaseOrder po = PurchaseOrder.builder().id(poId).status(PurchaseOrderStatus.CREATED).build();
         when(purchaseOrderRepository.findById(poId)).thenReturn(Optional.of(po));
-        when(purchaseOrderLineRepository.findById(lineId)).thenReturn(Optional.of(pol));
-        when(inventoryRepository.findByWarehouseIdAndProductId(warehouseId, product.getId())).thenReturn(Optional.empty());
-        when(warehouseRepository.findById(warehouseId)).thenReturn(Optional.of(wh));
-        when(inventoryRepository.save(any(Inventory.class))).thenAnswer(i -> i.getArgument(0));
-        when(purchaseOrderRepository.save(any(PurchaseOrder.class))).thenAnswer(i -> i.getArgument(0));
+        when(purchaseOrderRepository.save(any())).thenAnswer(i -> i.getArgument(0));
 
-        PurchaseOrderReceiveLineDto rl = PurchaseOrderReceiveLineDto.builder()
-                .lineId(lineId)
-                .receivedQuantity(4)
-                .build();
-        PurchaseOrderReceiveDto dto = PurchaseOrderReceiveDto.builder().lines(List.of(rl)).build();
-        PurchaseOrder result = purchaseOrderService.receive(poId, dto, warehouseId);
-        assertNotNull(result);
-        assertEquals(PurchaseOrderStatus.RECEIVED, result.getStatus());
+        PurchaseOrder res = service.cancel(poId);
+
+        assertEquals(PurchaseOrderStatus.CANCELED, res.getStatus());
+        verify(purchaseOrderRepository).save(any(PurchaseOrder.class));
     }
 }

@@ -1,12 +1,10 @@
 package com.example.digitallogistics.service.impl;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -21,35 +19,23 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import com.example.digitallogistics.exception.ValidationException;
 import com.example.digitallogistics.model.dto.SalesOrderCreateDto;
 import com.example.digitallogistics.model.dto.SalesOrderLineCreateDto;
-import com.example.digitallogistics.model.entity.Inventory;
-import com.example.digitallogistics.model.entity.Product;
-import com.example.digitallogistics.model.entity.SalesOrder;
-import com.example.digitallogistics.model.entity.SalesOrderLine;
+import com.example.digitallogistics.model.entity.*;
 import com.example.digitallogistics.model.enums.OrderStatus;
-import com.example.digitallogistics.repository.ClientRepository;
-import com.example.digitallogistics.repository.InventoryRepository;
-import com.example.digitallogistics.repository.ProductRepository;
-import com.example.digitallogistics.repository.SalesOrderLineRepository;
-import com.example.digitallogistics.repository.SalesOrderRepository;
+import com.example.digitallogistics.repository.*;
 
 @ExtendWith(MockitoExtension.class)
 class SalesOrderServiceImplTest {
 
     @Mock
     private SalesOrderRepository salesOrderRepository;
-
     @Mock
     private SalesOrderLineRepository salesOrderLineRepository;
-
     @Mock
     private InventoryRepository inventoryRepository;
-
     @Mock
     private ProductRepository productRepository;
-
     @Mock
     private ClientRepository clientRepository;
-
     @Mock
     private com.example.digitallogistics.model.mapper.UserMapper userMapper;
 
@@ -82,13 +68,19 @@ class SalesOrderServiceImplTest {
 
         when(inventoryRepository.findByProductId(productId)).thenReturn(List.of(inv));
         when(productRepository.findById(productId)).thenReturn(Optional.of(p));
-        when(salesOrderRepository.save(any(SalesOrder.class))).thenAnswer(i -> i.getArgument(0));
+        when(salesOrderRepository.save(any(SalesOrder.class))).thenAnswer(i -> {
+            SalesOrder o = i.getArgument(0);
+            o.setId(UUID.randomUUID());
+            return o;
+        });
         when(salesOrderLineRepository.save(any(SalesOrderLine.class))).thenAnswer(i -> i.getArgument(0));
         when(inventoryRepository.save(any(Inventory.class))).thenAnswer(i -> i.getArgument(0));
 
         SalesOrder result = salesOrderService.create(dto);
 
+        assertNotNull(result);
         assertEquals(OrderStatus.RESERVED, result.getStatus());
+        verify(inventoryRepository, atLeastOnce()).save(any(Inventory.class));
     }
 
     @Test
@@ -102,6 +94,41 @@ class SalesOrderServiceImplTest {
 
         when(inventoryRepository.findByProductId(productId)).thenReturn(List.of());
 
-        assertThrows(ValidationException.class, () -> salesOrderService.create(dto));
+        ValidationException ex = assertThrows(ValidationException.class, () -> salesOrderService.create(dto));
+        assertTrue(ex.getMessage().contains("Insufficient inventory"));
+    }
+
+    @Test
+    void cancel_shouldReleaseReservedInventory() {
+        UUID orderId = UUID.randomUUID();
+        SalesOrder order = SalesOrder.builder().id(orderId).status(OrderStatus.RESERVED).build();
+        
+        Product p = new Product();
+        p.setId(productId);
+        
+        SalesOrderLine line = SalesOrderLine.builder()
+                .id(UUID.randomUUID())
+                .salesOrder(order)
+                .product(p)
+                .quantity(3)
+                .build();
+
+        Inventory inv = Inventory.builder()
+                .id(UUID.randomUUID())
+                .product(p)
+                .qtyOnHand(2)
+                .qtyReserved(3)
+                .build();
+
+        when(salesOrderRepository.findById(orderId)).thenReturn(Optional.of(order));
+        when(salesOrderLineRepository.findBySalesOrderId(orderId)).thenReturn(List.of(line));
+        when(inventoryRepository.findByProductId(productId)).thenReturn(List.of(inv));
+        when(inventoryRepository.save(any(Inventory.class))).thenAnswer(i -> i.getArgument(0));
+        when(salesOrderRepository.save(any(SalesOrder.class))).thenAnswer(i -> i.getArgument(0));
+
+        SalesOrder result = salesOrderService.cancel(orderId);
+
+        assertEquals(OrderStatus.CANCELED, result.getStatus());
+        verify(inventoryRepository).save(any(Inventory.class));
     }
 }
