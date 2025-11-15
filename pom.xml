@@ -167,6 +167,17 @@
                         <goals>
                             <goal>report</goal>
                         </goals>
+						<configuration>
+                            <excludes>
+                                <!-- Exclude model entities, DTOs, mappers and config classes -->
+                                <exclude>**/model/entity/**</exclude>
+                                <exclude>**/model/dto/**</exclude>
+                                <exclude>**/model/mapper/**</exclude>
+                                <exclude>**/model/enums/**</exclude>
+                                <exclude>**/config/**</exclude>
+                                <exclude>**/LogisticsApiApplication.class</exclude>
+                            </excludes>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>
