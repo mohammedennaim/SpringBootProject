@@ -32,9 +32,15 @@ public class ReportServiceImpl implements ReportService {
             report.setCancelledOrders(10L);
 
             double total = report.getTotalOrders().doubleValue();
-            report.setDeliveryRate(report.getDeliveredOrders() / total * 100);
-            report.setBackorderRate(report.getPendingOrders() / total * 100);
-            report.setCancellationRate(report.getCancelledOrders() / total * 100);
+            if (total > 0) {
+                report.setDeliveryRate(report.getDeliveredOrders() / total * 100);
+                report.setBackorderRate(report.getPendingOrders() / total * 100);
+                report.setCancellationRate(report.getCancelledOrders() / total * 100);
+            } else {
+                report.setDeliveryRate(0.0);
+                report.setBackorderRate(0.0);
+                report.setCancellationRate(0.0);
+            }
             report.setTotalRevenue(new BigDecimal("125000.00"));
             report.setAverageOrderValue(report.getTotalRevenue().divide(new BigDecimal(total), 2, RoundingMode.HALF_UP));
             report.setPendingRevenue(new BigDecimal("18500.00"));
@@ -122,9 +128,15 @@ public class ReportServiceImpl implements ReportService {
             report.setCancelledShipments(2L);
             
             double total = report.getTotalShipments().doubleValue();
-            report.setOnTimeDeliveryRate((report.getDeliveredShipments() - report.getDelayedShipments()) / total * 100);
-            report.setDelayRate(report.getDelayedShipments() / total * 100);
-            report.setCancellationRate(report.getCancelledShipments() / total * 100);
+            if (total > 0) {
+                report.setOnTimeDeliveryRate((report.getDeliveredShipments() - report.getDelayedShipments()) / total * 100);
+                report.setDelayRate(report.getDelayedShipments() / total * 100);
+                report.setCancellationRate(report.getCancelledShipments() / total * 100);
+            } else {
+                report.setOnTimeDeliveryRate(0.0);
+                report.setDelayRate(0.0);
+                report.setCancellationRate(0.0);
+            }
             report.setAverageShippingTimeHours(36.5);
             report.setAverageDelayHours(12.8);
             

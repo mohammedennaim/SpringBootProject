@@ -116,11 +116,11 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
             var poline = purchaseOrderLineRepository.findById(rl.getLineId()).orElseThrow(() -> new RuntimeException("PO line not found"));
             int toReceive = rl.getReceivedQuantity() != null ? rl.getReceivedQuantity() : 0;
 
-            UUID productId = poline.getProduct() != null ? poline.getProduct().getId() : null;
-            Inventory inventory = null;
-            if (productId != null) {
-                inventory = inventoryRepository.findByWarehouseIdAndProductId(warehouseId, productId).orElse(null);
+            if (poline.getProduct() == null) {
+                throw new RuntimeException("Product is required for purchase order line");
             }
+            UUID productId = poline.getProduct().getId();
+            Inventory inventory = inventoryRepository.findByWarehouseIdAndProductId(warehouseId, productId).orElse(null);
 
             if (inventory == null) {
                 var wh = warehouseRepository.findById(warehouseId)

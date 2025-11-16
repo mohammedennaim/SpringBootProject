@@ -28,11 +28,11 @@ public class JwtTokenProvider {
 
     public JwtTokenProvider(@Value("${app.jwt.secret:defaultSecretKeyChangeMe}") String secret,
                             @Value("${app.jwt.expiration-ms:3600000}") long validityInMilliseconds) {
-        byte[] bytes = secret == null ? new byte[0] : secret.getBytes(StandardCharsets.UTF_8);
+        byte[] bytes = secret != null ? secret.getBytes(StandardCharsets.UTF_8) : "defaultSecretKeyChangeMe".getBytes(StandardCharsets.UTF_8);
         if (bytes.length < 32) {
             byte[] padded = new byte[32];
             for (int i = 0; i < 32; i++) {
-                padded[i] = bytes.length == 0 ? 0 : bytes[i % bytes.length];
+                padded[i] = bytes[i % bytes.length];
             }
             bytes = padded;
         } else if (bytes.length > 32) {

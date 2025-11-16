@@ -53,7 +53,8 @@ public class InventoryServiceImpl implements InventoryService {
     @Override
     public Optional<Inventory> findByWarehouseAndProduct(UUID warehouseId, UUID productId) {
         return inventoryRepository.findAll().stream()
-                .filter(inv -> inv.getWarehouse().getId().equals(warehouseId) && 
+                .filter(inv -> inv.getWarehouse() != null && inv.getProduct() != null &&
+                              inv.getWarehouse().getId().equals(warehouseId) && 
                               inv.getProduct().getId().equals(productId))
                 .findFirst();
     }

@@ -1,7 +1,7 @@
 ###############################
 # Build stage
 ###############################
-FROM eclipse-temurin:17-jdk-alpine AS build
+FROM amazoncorretto:17-alpine AS build
 
 WORKDIR /app
 
@@ -27,7 +27,7 @@ RUN ls -la /app/target/
 ###############################
 # Runtime stage
 ###############################
-FROM eclipse-temurin:17-jre-alpine
+FROM amazoncorretto:17-alpine
 
 # Create non-root user
 RUN addgroup -S spring && adduser -S spring -G spring
@@ -42,7 +42,7 @@ RUN chown -R spring:spring /app
 
 # Set a default server port and JAVA_HOME
 ENV SERVER_PORT=8093
-ENV JAVA_HOME=/usr/local/openjdk-17
+ENV JAVA_HOME=/usr/lib/jvm/default-jvm
 ENV PATH="${JAVA_HOME}/bin:${PATH}"
 
 # Switch to non-root user

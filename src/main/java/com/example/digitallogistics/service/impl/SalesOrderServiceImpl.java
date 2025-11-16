@@ -97,6 +97,9 @@ public class SalesOrderServiceImpl implements SalesOrderService {
         }
 
         for (SalesOrderLine line : lines) {
+            if (line.getProduct() == null) {
+                throw new ValidationException("Product is required for sales order line");
+            }
             int qtyToReserve = line.getQuantity();
             List<Inventory> inventories = inventoryRepository.findByProductId(line.getProduct().getId()).stream()
                     .sorted(Comparator.comparingInt(inv -> -((inv.getQtyOnHand() != null ? inv.getQtyOnHand() : 0))))
@@ -146,6 +149,9 @@ public class SalesOrderServiceImpl implements SalesOrderService {
 
         List<SalesOrderLine> lines = salesOrderLineRepository.findBySalesOrderId(order.getId());
         for (SalesOrderLine line : lines) {
+            if (line.getProduct() == null) {
+                throw new RuntimeException("Product is required for sales order line");
+            }
             int qtyToReserve = line.getQuantity();
             List<Inventory> inventories = inventoryRepository.findByProductId(line.getProduct().getId()).stream()
                     .sorted(Comparator.comparingInt(inv -> -((inv.getQtyOnHand() != null ? inv.getQtyOnHand() : 0) - (inv.getQtyReserved() != null ? inv.getQtyReserved() : 0))))
@@ -205,6 +211,9 @@ public class SalesOrderServiceImpl implements SalesOrderService {
         SalesOrder order = salesOrderRepository.findById(id).orElseThrow(() -> new RuntimeException("Order not found"));
         List<SalesOrderLine> lines = salesOrderLineRepository.findBySalesOrderId(order.getId());
         for (SalesOrderLine line : lines) {
+            if (line.getProduct() == null) {
+                continue; // Skip lines without products
+            }
             int qtyToRelease = line.getQuantity();
             List<Inventory> inventories = inventoryRepository.findByProductId(line.getProduct().getId());
             for (Inventory inv : inventories) {
