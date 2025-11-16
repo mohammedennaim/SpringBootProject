@@ -1,45 +1,56 @@
-# Ignore OS, editor and IDE files
-.DS_Store
-.idea/
-.vscode/
-*.iml
-
-# Git and CI
-.git
-.gitignore
-
-# Java build artifacts
+# Maven
 target/
-*.class
-*.jar
-*.war
+!target/*.jar
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/timing.properties
+.mvn/wrapper/maven-wrapper.jar
 
-# Maven wrapper and local maven repository
-# Note: keep the project .mvn directory in the build context so Docker can use the wrapper
-
-# Node / frontend (if present)
-node_modules/
-dist/
-
-# Local env and secrets
-.env
-.env.local
-.venv/
-secrets/
+# IDE
+.idea/
+*.iml
+.vscode/
+.settings/
+.classpath
+.project
+.factorypath
 
 # Logs
 logs/
 *.log
 
+# OS
+.DS_Store
+Thumbs.db
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# Documentation
+README.md
+IMPROVEMENTS.md
+*.md
+
+# CI/CD
+.github/
+Jenkinsfile
+jenkins/
+
 # Docker
-docker-compose.override.yml
+Dockerfile
+docker-compose.yaml
+.dockerignore
 
-# Avoid packaging IDE config and local mounts
-.classpath
-.project
-.settings/
+# Env
+.env
+.env.*
 
-# Ignore temporary files
-tmp/
-*.tmp
-*~
+# Tests
+src/test/

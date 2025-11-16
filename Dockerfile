@@ -29,19 +29,27 @@ RUN ls -la /app/target/
 ###############################
 FROM eclipse-temurin:17-jre-alpine
 
+# Create non-root user
+RUN addgroup -S spring && adduser -S spring -G spring
+
 WORKDIR /app
 
-# Copy the fat jar from the build stage using a wildcard so versioned jar names won't break the build
-# It will copy the first matching jar into app.jar inside the runtime image
+# Copy the fat jar from the build stage
 COPY --from=build /app/target/*.jar app.jar
 
-# Set a default server port and JAVA_HOME for clarity
+# Change ownership to non-root user
+RUN chown -R spring:spring /app
+
+# Set a default server port and JAVA_HOME
 ENV SERVER_PORT=8093
 ENV JAVA_HOME=/usr/local/openjdk-17
 ENV PATH="${JAVA_HOME}/bin:${PATH}"
 
-# Align with application's default port (overridable via SERVER_PORT env)
+# Switch to non-root user
+USER spring:spring
+
+# Expose port
 EXPOSE ${SERVER_PORT}
 
-# Run the packaged Spring Boot application
+# Run the application
 CMD ["java","-jar","app.jar"]

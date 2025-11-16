@@ -60,26 +60,22 @@ services:
 
   app:
     build:
-      context: . # Build from the current directory where Dockerfile is located
-      # No 'target' needed here as the Dockerfile explicitly defines build and runtime stages
+      context: .
     depends_on:
       postgres:
         condition: service_healthy
     environment:
       SERVER_PORT: ${SERVER_PORT}
-      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL} # Using the variable from .env
+      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL}
       SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME}
       SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
       SPRING_JPA_HIBERNATE_DDL_AUTO: ${SPRING_JPA_HIBERNATE_DDL_AUTO}
       SPRING_JPA_SHOW_SQL: ${SPRING_JPA_SHOW_SQL}
       SPRING_JPA_DIALECT: ${SPRING_JPA_DIALECT}
     ports:
-      # map host APP_HOST_PORT to container SERVER_PORT to avoid collisions
       - "${APP_HOST_PORT}:${SERVER_PORT}"
     networks:
       - logistics-net
-    # No 'command' needed here, as the Dockerfile's CMD handles running the JAR
-    # No volumes for source code needed, as the app is packaged into the image
     restart: unless-stopped
 
   jenkins:
