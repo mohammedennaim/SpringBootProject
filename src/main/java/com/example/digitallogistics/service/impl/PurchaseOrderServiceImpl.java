@@ -23,9 +23,14 @@ import com.example.digitallogistics.repository.PurchaseOrderRepository;
 import com.example.digitallogistics.repository.SupplierRepository;
 import com.example.digitallogistics.service.PurchaseOrderService;
 import com.example.digitallogistics.repository.WarehouseRepository;
+import com.example.digitallogistics.exception.ResourceNotFoundException;
+import com.example.digitallogistics.exception.OrderStateException;
+import com.example.digitallogistics.exception.ValidationException;
 
 @Service
 public class PurchaseOrderServiceImpl implements PurchaseOrderService {
+
+    private static final String PURCHASE_ORDER_NOT_FOUND = "Purchase order not found with id: ";
 
     private final PurchaseOrderRepository purchaseOrderRepository;
     private final PurchaseOrderLineRepository purchaseOrderLineRepository;
@@ -55,7 +60,6 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
 
     @Override
     @Transactional
-    @SuppressWarnings("null")
     public PurchaseOrder create(PurchaseOrderCreateDto dto) {
         PurchaseOrder po = PurchaseOrder.builder()
                 .status(PurchaseOrderStatus.CREATED)
@@ -84,18 +88,17 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
     }
 
     @Override
-    @SuppressWarnings("null")
     public Optional<PurchaseOrder> findById(UUID id) {
         return purchaseOrderRepository.findById(id);
     }
 
     @Override
     @Transactional
-    @SuppressWarnings("null")
     public PurchaseOrder approve(UUID id) {
-        PurchaseOrder po = purchaseOrderRepository.findById(id).orElseThrow(() -> new RuntimeException("PO not found"));
+        PurchaseOrder po = purchaseOrderRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException(PURCHASE_ORDER_NOT_FOUND + id));
         if (po.getStatus() != PurchaseOrderStatus.CREATED) {
-            throw new RuntimeException("Only CREATED POs can be approved");
+            throw new OrderStateException("Only CREATED purchase orders can be approved");
         }
         po.setStatus(PurchaseOrderStatus.APPROVED);
         return purchaseOrderRepository.save(po);
@@ -103,28 +106,29 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
 
 
     
-    @SuppressWarnings("null")
     @Override
     @Transactional
     public PurchaseOrder receive(UUID id, PurchaseOrderReceiveDto dto, UUID warehouseId) {
-        PurchaseOrder po = purchaseOrderRepository.findById(id).orElseThrow(() -> new RuntimeException("PO not found"));
+        PurchaseOrder po = purchaseOrderRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException(PURCHASE_ORDER_NOT_FOUND + id));
         if (po.getStatus() != PurchaseOrderStatus.APPROVED && po.getStatus() != PurchaseOrderStatus.CREATED) {
-            throw new RuntimeException("Only CREATED or APPROVED POs can be received");
+            throw new OrderStateException("Only CREATED or APPROVED purchase orders can be received");
         }
 
         for (var rl : dto.getLines()) {
-            var poline = purchaseOrderLineRepository.findById(rl.getLineId()).orElseThrow(() -> new RuntimeException("PO line not found"));
+            var poline = purchaseOrderLineRepository.findById(rl.getLineId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Purchase order line not found with id: " + rl.getLineId()));
             int toReceive = rl.getReceivedQuantity() != null ? rl.getReceivedQuantity() : 0;
 
             if (poline.getProduct() == null) {
-                throw new RuntimeException("Product is required for purchase order line");
+                throw new ValidationException("Product is required for purchase order line");
             }
             UUID productId = poline.getProduct().getId();
             Inventory inventory = inventoryRepository.findByWarehouseIdAndProductId(warehouseId, productId).orElse(null);
 
             if (inventory == null) {
                 var wh = warehouseRepository.findById(warehouseId)
-                        .orElseThrow(() -> new RuntimeException("Warehouse not found"));
+                        .orElseThrow(() -> new ResourceNotFoundException("Warehouse not found with id: " + warehouseId));
                 inventory = Inventory.builder()
                         .warehouse(wh)
                         .product(poline.getProduct())
@@ -142,11 +146,11 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
         return purchaseOrderRepository.save(po);
     }
 
-    @SuppressWarnings("null")
     @Override
     @Transactional
     public PurchaseOrder cancel(UUID id) {
-        PurchaseOrder po = purchaseOrderRepository.findById(id).orElseThrow(() -> new RuntimeException("PO not found"));
+        PurchaseOrder po = purchaseOrderRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException(PURCHASE_ORDER_NOT_FOUND + id));
         po.setStatus(PurchaseOrderStatus.CANCELED);
         return purchaseOrderRepository.save(po);
     }
