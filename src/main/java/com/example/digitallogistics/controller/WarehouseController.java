@@ -62,40 +62,33 @@ public class WarehouseController {
     @GetMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN') or hasRole('WAREHOUSE_MANAGER')")
     public ResponseEntity<WarehouseDto> get(@PathVariable UUID id) {
-        Optional<Warehouse> warehouse = warehouseService.findById(id);
-        if (warehouse.isEmpty()) {
-            return ResponseEntity.notFound().build();
-        }
-        return ResponseEntity.ok(warehouseMapper.toDto(warehouse.get()));
+        return warehouseService.findById(id)
+                .map(warehouse -> ResponseEntity.ok(warehouseMapper.toDto(warehouse)))
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN') or hasRole('WAREHOUSE_MANAGER')")
     public ResponseEntity<WarehouseDto> update(@PathVariable UUID id, @RequestBody @Valid WarehouseUpdateDto updateDto) {
         Optional<Warehouse> existing = warehouseService.findById(id);
-        if (existing.isEmpty()) {
-            return ResponseEntity.notFound().build();
-        }
+        if (existing.isEmpty()) return ResponseEntity.notFound().build();
         
         Warehouse warehouse = existing.get();
         warehouseMapper.updateFromDto(updateDto, warehouse);
         
-        Optional<Warehouse> updated = warehouseService.update(id, warehouse);
-        if (updated.isPresent()) {
-            return ResponseEntity.ok(warehouseMapper.toDto(updated.get()));
-        }
-        return ResponseEntity.notFound().build();
+        return warehouseService.update(id, warehouse)
+                .map(updated -> ResponseEntity.ok(warehouseMapper.toDto(updated)))
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN') or hasRole('WAREHOUSE_MANAGER')")
     public ResponseEntity<Void> delete(@PathVariable UUID id) {
-        Optional<Warehouse> warehouse = warehouseService.findById(id);
-        if (warehouse.isEmpty()) {
-            return ResponseEntity.notFound().build();
-        }
-        
-        warehouseService.deleteById(id);
-        return ResponseEntity.noContent().build();
+        return warehouseService.findById(id)
+                .map(warehouse -> {
+                    warehouseService.deleteById(id);
+                    return ResponseEntity.noContent().<Void>build();
+                })
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 }

@@ -1,7 +1,6 @@
 package com.example.digitallogistics.controller;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -59,11 +58,9 @@ public class InventoryController {
     @GetMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN') or hasRole('WAREHOUSE_MANAGER')")
     public ResponseEntity<InventoryDto> get(@PathVariable UUID id) {
-        Optional<Inventory> inventory = inventoryService.findById(id);
-        if (inventory.isEmpty()) {
-            return ResponseEntity.notFound().build();
-        }
-        return ResponseEntity.ok(inventoryMapper.toDto(inventory.get()));
+        return inventoryService.findById(id)
+                .map(inventory -> ResponseEntity.ok(inventoryMapper.toDto(inventory)))
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @PostMapping("/adjust")

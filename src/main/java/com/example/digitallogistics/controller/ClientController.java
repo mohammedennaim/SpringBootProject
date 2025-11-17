@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -55,12 +54,9 @@ public class ClientController {
     @Operation(summary = "Obtenir les détails d'un client")
     @PreAuthorize("hasAnyRole('ADMIN', 'WAREHOUSE_MANAGER', 'DRIVER')")
     public ResponseEntity<ClientDto> getClientById(@PathVariable UUID id) {
-        Optional<Client> client = clientService.findById(id);
-        if (client.isPresent()) {
-            ClientDto clientDto = clientMapper.toDto(client.get());
-            return ResponseEntity.ok(clientDto);
-        }
-        return ResponseEntity.notFound().build();
+        return clientService.findById(id)
+                .map(client -> ResponseEntity.ok(clientMapper.toDto(client)))
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @PutMapping("/{id}")
@@ -68,11 +64,8 @@ public class ClientController {
     @PreAuthorize("hasAnyRole('ADMIN', 'WAREHOUSE_MANAGER')")
     public ResponseEntity<ClientDto> updateClient(@PathVariable UUID id, @Valid @RequestBody ClientCreateDto clientCreateDto) {
         Client client = clientMapper.toEntity(clientCreateDto);
-        Optional<Client> updatedClient = clientService.update(id, client);
-        if (updatedClient.isPresent()) {
-            ClientDto clientDto = clientMapper.toDto(updatedClient.get());
-            return ResponseEntity.ok(clientDto);
-        }
-        return ResponseEntity.notFound().build();
+        return clientService.update(id, client)
+                .map(updated -> ResponseEntity.ok(clientMapper.toDto(updated)))
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 }

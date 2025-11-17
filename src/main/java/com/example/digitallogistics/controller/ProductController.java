@@ -116,10 +116,11 @@ public class ProductController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ProductDto> desactivate(@PathVariable String sku){
         Optional<Product> optProduct = productService.findBySku(sku);
+        if (optProduct.isEmpty()) return ResponseEntity.notFound().build();
         if (!productService.desactivate(sku)) return ResponseEntity.status(HttpStatus.CONFLICT).build();
         Product product = optProduct.get();
-        if (productService.desactivate(sku) && product.isActive()){ product.setActive(false); }
-        productService.update(optProduct.get().getId(),product);
+        if (product.isActive()) product.setActive(false);
+        productService.update(product.getId(), product);
         return ResponseEntity.ok(productMapper.toDto(product));
     }
 }

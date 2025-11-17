@@ -68,40 +68,33 @@ public class SupplierController {
     @GetMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN') or hasRole('WAREHOUSE_MANAGER')")
     public ResponseEntity<SupplierDto> get(@PathVariable UUID id) {
-        Optional<Supplier> supplier = supplierService.findById(id);
-        if (supplier.isEmpty()) {
-            return ResponseEntity.notFound().build();
-        }
-        return ResponseEntity.ok(supplierMapper.toDto(supplier.get()));
+        return supplierService.findById(id)
+                .map(supplier -> ResponseEntity.ok(supplierMapper.toDto(supplier)))
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN') or hasRole('WAREHOUSE_MANAGER')")
     public ResponseEntity<SupplierDto> update(@PathVariable UUID id, @RequestBody @Valid SupplierUpdateDto updateDto) {
         Optional<Supplier> existing = supplierService.findById(id);
-        if (existing.isEmpty()) {
-            return ResponseEntity.notFound().build();
-        }
+        if (existing.isEmpty()) return ResponseEntity.notFound().build();
         
         Supplier supplier = existing.get();
         supplierMapper.updateFromDto(updateDto, supplier);
         
-        Optional<Supplier> updated = supplierService.update(id, supplier);
-        if (updated.isPresent()) {
-            return ResponseEntity.ok(supplierMapper.toDto(updated.get()));
-        }
-        return ResponseEntity.notFound().build();
+        return supplierService.update(id, supplier)
+                .map(updated -> ResponseEntity.ok(supplierMapper.toDto(updated)))
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN') or hasRole('WAREHOUSE_MANAGER')")
     public ResponseEntity<Void> delete(@PathVariable UUID id) {
-        Optional<Supplier> supplier = supplierService.findById(id);
-        if (supplier.isEmpty()) {
-            return ResponseEntity.notFound().build();
-        }
-        
-        supplierService.deleteById(id);
-        return ResponseEntity.noContent().build();
+        return supplierService.findById(id)
+                .map(supplier -> {
+                    supplierService.deleteById(id);
+                    return ResponseEntity.noContent().<Void>build();
+                })
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 }

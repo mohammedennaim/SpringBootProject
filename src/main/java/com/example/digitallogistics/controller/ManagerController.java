@@ -47,12 +47,9 @@ public class ManagerController {
     @Operation(summary = "Obtenir les détails d'un manager")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ManagerDto> getManagerById(@PathVariable UUID id) {
-        Optional<Manager> manager = managerService.findById(id);
-        if (manager.isPresent()) {
-            ManagerDto managerDto = managerMapper.toDto(manager.get());
-            return ResponseEntity.ok(managerDto);
-        }
-        return ResponseEntity.notFound().build();
+        return managerService.findById(id)
+                .map(manager -> ResponseEntity.ok(managerMapper.toDto(manager)))
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @GetMapping("/warehouse/{warehouseId}")
@@ -82,13 +79,13 @@ public class ManagerController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ManagerDto> createManager(@Valid @RequestBody ManagerCreateDto managerCreateDto) {
         if (managerService.findByEmail(managerCreateDto.getEmail()).isPresent()) {
-            return ResponseEntity.badRequest().build();
+            return ResponseEntity.status(HttpStatus.CONFLICT).build();
         }
         
         Manager manager = managerMapper.toEntity(managerCreateDto);
         Manager createdManager = managerService.create(manager);
         ManagerDto managerDto = managerMapper.toDto(createdManager);
-        return new ResponseEntity<>(managerDto, HttpStatus.CREATED);
+        return ResponseEntity.status(HttpStatus.CREATED).body(managerDto);
     }
 
     @PutMapping("/{id}")
@@ -98,19 +95,16 @@ public class ManagerController {
         if (managerUpdateDto.getEmail() != null) {
             Optional<Manager> existingManager = managerService.findByEmail(managerUpdateDto.getEmail());
             if (existingManager.isPresent() && !existingManager.get().getId().equals(id)) {
-                return ResponseEntity.badRequest().build();
+                return ResponseEntity.status(HttpStatus.CONFLICT).build();
             }
         }
         
         Manager manager = new Manager();
         managerMapper.updateEntityFromDto(managerUpdateDto, manager);
         
-        Optional<Manager> updatedManager = managerService.update(id, manager);
-        if (updatedManager.isPresent()) {
-            ManagerDto managerDto = managerMapper.toDto(updatedManager.get());
-            return ResponseEntity.ok(managerDto);
-        }
-        return ResponseEntity.notFound().build();
+        return managerService.update(id, manager)
+                .map(updated -> ResponseEntity.ok(managerMapper.toDto(updated)))
+                .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).build());
     }
 
     @DeleteMapping("/{id}")
@@ -119,9 +113,9 @@ public class ManagerController {
     public ResponseEntity<Void> deleteManager(@PathVariable UUID id) {
         if (managerService.findById(id).isPresent()) {
             managerService.delete(id);
-            return ResponseEntity.noContent().build();
+            return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
         }
-        return ResponseEntity.notFound().build();
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
     }
 
     @PostMapping("/{managerId}/warehouses/{warehouseId}")
@@ -133,32 +127,28 @@ public class ManagerController {
         try {
             ((ManagerServiceImpl) managerService)
                 .assignWarehouse(managerId, warehouseId);
-            Optional<Manager> updatedManager = managerService.findById(managerId);
-            if (updatedManager.isPresent()) {
-                return ResponseEntity.ok(managerMapper.toDto(updatedManager.get()));
-            }
-            return ResponseEntity.notFound().build();
+            return managerService.findById(managerId)
+                    .map(manager -> ResponseEntity.status(HttpStatus.OK).body(managerMapper.toDto(manager)))
+                    .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).build());
         } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().build();
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
     }
 
     @DeleteMapping("/{managerId}/warehouses/{warehouseId}")
     @Operation(summary = "Retirer un entrepôt d'un manager")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ManagerDto> removeWarehouse(
+    public ResponseEntity<Void> removeWarehouse(
             @PathVariable UUID managerId, 
             @PathVariable UUID warehouseId) {
         try {
             ((ManagerServiceImpl) managerService)
                 .removeWarehouse(managerId, warehouseId);
-            Optional<Manager> updatedManager = managerService.findById(managerId);
-            if (updatedManager.isPresent()) {
-                return ResponseEntity.ok(managerMapper.toDto(updatedManager.get()));
-            }
-            return ResponseEntity.notFound().build();
+            return managerService.findById(managerId).isPresent() 
+                    ? ResponseEntity.status(HttpStatus.NO_CONTENT).build()
+                    : ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().build();
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
     }
 
@@ -171,13 +161,11 @@ public class ManagerController {
         try {
             ((ManagerServiceImpl) managerService)
                 .assignWarehouses(managerId, warehouseIds);
-            Optional<Manager> updatedManager = managerService.findById(managerId);
-            if (updatedManager.isPresent()) {
-                return ResponseEntity.ok(managerMapper.toDto(updatedManager.get()));
-            }
-            return ResponseEntity.notFound().build();
+            return managerService.findById(managerId)
+                    .map(manager -> ResponseEntity.status(HttpStatus.OK).body(managerMapper.toDto(manager)))
+                    .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).build());
         } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().build();
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
     }
 }
