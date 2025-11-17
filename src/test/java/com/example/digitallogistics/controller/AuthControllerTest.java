@@ -103,4 +103,19 @@ class AuthControllerTest {
                 .andExpect(jsonPath("$.email").value("new@example.com"))
                 .andExpect(jsonPath("$.name").value("New User"));
     }
+
+    @Test
+    void logout_shouldRevokeToken() throws Exception {
+        mockMvc.perform(post("/api/auth/logout")
+                .header("Authorization", "Bearer test-token"))
+                .andExpect(status().isNoContent());
+    }
+
+    @Test
+    void logout_withBodyToken_shouldRevokeToken() throws Exception {
+        mockMvc.perform(post("/api/auth/logout")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"token\":\"test-token\"}"))
+                .andExpect(status().isNoContent());
+    }
 }

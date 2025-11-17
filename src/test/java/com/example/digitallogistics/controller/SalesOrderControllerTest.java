@@ -1,7 +1,6 @@
 package com.example.digitallogistics.controller;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -85,7 +84,7 @@ class SalesOrderControllerTest {
         SalesOrder order = new SalesOrder();
         order.setId(id);
 
-        when(salesOrderService.findById(eq(id))).thenReturn(Optional.of(order));
+        when(salesOrderService.findById(id)).thenReturn(Optional.of(order));
         when(salesOrderService.findLines(any())).thenReturn(List.of());
 
         mockMvc.perform(get("/api/sales-orders/" + id))
@@ -98,7 +97,7 @@ class SalesOrderControllerTest {
         SalesOrder order = new SalesOrder();
         order.setId(id);
 
-        when(salesOrderService.reserve(eq(id))).thenReturn(order);
+        when(salesOrderService.reserve(id)).thenReturn(order);
         when(salesOrderService.findLines(any())).thenReturn(List.of());
 
         mockMvc.perform(put("/api/sales-orders/" + id + "/reserve"))
@@ -111,10 +110,40 @@ class SalesOrderControllerTest {
         SalesOrder order = new SalesOrder();
         order.setId(id);
 
-        when(salesOrderService.cancel(eq(id))).thenReturn(order);
+        when(salesOrderService.cancel(id)).thenReturn(order);
         when(salesOrderService.findLines(any())).thenReturn(List.of());
 
         mockMvc.perform(put("/api/sales-orders/" + id + "/cancel"))
                 .andExpect(status().isOk());
+    }
+
+    @Test
+    void ship_shouldReturnUpdated() throws Exception {
+        UUID id = UUID.randomUUID();
+        SalesOrder order = new SalesOrder();
+        order.setId(id);
+        when(salesOrderService.ship(id)).thenReturn(order);
+        when(salesOrderService.findLines(any())).thenReturn(List.of());
+        mockMvc.perform(put("/api/sales-orders/" + id + "/ship"))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void deliver_shouldReturnUpdated() throws Exception {
+        UUID id = UUID.randomUUID();
+        SalesOrder order = new SalesOrder();
+        order.setId(id);
+        when(salesOrderService.deliver(id)).thenReturn(order);
+        when(salesOrderService.findLines(any())).thenReturn(List.of());
+        mockMvc.perform(put("/api/sales-orders/" + id + "/deliver"))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void get_shouldReturn404_whenNotFound() throws Exception {
+        UUID id = UUID.randomUUID();
+        when(salesOrderService.findById(id)).thenReturn(Optional.empty());
+        mockMvc.perform(get("/api/sales-orders/" + id))
+                .andExpect(status().isNotFound());
     }
 }

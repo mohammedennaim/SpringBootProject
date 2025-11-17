@@ -129,4 +129,68 @@ class ProductControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.sku").value("SKU001"));
     }
+
+
+
+    @Test
+    void delete_shouldReturnNoContent() throws Exception {
+        UUID id = UUID.randomUUID();
+        Product product = new Product();
+        product.setId(id);
+        when(productService.findById(id)).thenReturn(Optional.of(product));
+        mockMvc.perform(delete("/api/products/" + id))
+                .andExpect(status().isNoContent());
+    }
+
+    @Test
+    void get_shouldReturn404_whenNotFound() throws Exception {
+        UUID id = UUID.randomUUID();
+        when(productService.findById(id)).thenReturn(Optional.empty());
+        mockMvc.perform(get("/api/products/" + id))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void update_shouldReturnUpdated() throws Exception {
+        UUID id = UUID.randomUUID();
+        Product product = new Product();
+        product.setId(id);
+        ProductDto dto = new ProductDto();
+        dto.setId(id);
+        when(productService.findById(id)).thenReturn(Optional.of(product));
+        when(productService.update(eq(id), any())).thenReturn(Optional.of(product));
+        when(productMapper.toDto(any())).thenReturn(dto);
+        mockMvc.perform(put("/api/products/" + id)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"name\":\"Updated\"}"))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void activateToggle_shouldToggleStatus() throws Exception {
+        UUID id = UUID.randomUUID();
+        Product product = new Product();
+        product.setId(id);
+        product.setActive(true);
+        ProductDto dto = new ProductDto();
+        when(productService.findById(id)).thenReturn(Optional.of(product));
+        when(productService.update(eq(id), any())).thenReturn(Optional.of(product));
+        when(productMapper.toDto(any())).thenReturn(dto);
+        mockMvc.perform(patch("/api/products/" + id + "/activate"))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void desactivate_shouldDeactivateProduct() throws Exception {
+        Product product = new Product();
+        product.setSku("SKU001");
+        product.setActive(true);
+        ProductDto dto = new ProductDto();
+        when(productService.findBySku("SKU001")).thenReturn(Optional.of(product));
+        when(productService.desactivate("SKU001")).thenReturn(true);
+        when(productService.update(any(), any())).thenReturn(Optional.of(product));
+        when(productMapper.toDto(any())).thenReturn(dto);
+        mockMvc.perform(patch("/api/products/SKU001/desactivate"))
+                .andExpect(status().isOk());
+    }
 }

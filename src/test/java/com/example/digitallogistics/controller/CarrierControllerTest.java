@@ -107,4 +107,35 @@ class CarrierControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].name").value("Active Carrier"));
     }
+
+    @Test
+    void updateCarrier_shouldReturnUpdated() throws Exception {
+        UUID id = UUID.randomUUID();
+        CarrierDto dto = new CarrierDto();
+        dto.setId(id);
+        when(carrierService.updateCarrier(eq(id), any())).thenReturn(dto);
+        mockMvc.perform(put("/api/carriers/" + id)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"name\":\"Updated\",\"phone\":\"+123\",\"maxDailyShipments\":100}"))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void updateCarrierStatus_shouldReturnUpdated() throws Exception {
+        UUID id = UUID.randomUUID();
+        CarrierDto dto = new CarrierDto();
+        dto.setId(id);
+        when(carrierService.updateCarrierStatus(eq(id), any())).thenReturn(dto);
+        mockMvc.perform(patch("/api/carriers/" + id + "/status")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"status\":\"ACTIVE\"}"))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void deleteCarrier_shouldReturnNoContent() throws Exception {
+        UUID id = UUID.randomUUID();
+        mockMvc.perform(delete("/api/carriers/" + id))
+                .andExpect(status().isNoContent());
+    }
 }

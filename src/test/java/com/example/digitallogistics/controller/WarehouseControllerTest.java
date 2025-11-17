@@ -118,4 +118,28 @@ class WarehouseControllerTest {
         mockMvc.perform(delete("/api/warehouses/" + id))
                 .andExpect(status().isNoContent());
     }
+
+    @Test
+    void update_shouldReturnUpdated() throws Exception {
+        UUID id = UUID.randomUUID();
+        Warehouse warehouse = new Warehouse();
+        warehouse.setId(id);
+        WarehouseDto dto = new WarehouseDto();
+        dto.setId(id);
+        when(warehouseService.findById(id)).thenReturn(Optional.of(warehouse));
+        when(warehouseService.update(eq(id), any())).thenReturn(Optional.of(warehouse));
+        when(warehouseMapper.toDto(any())).thenReturn(dto);
+        mockMvc.perform(put("/api/warehouses/" + id)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"name\":\"Updated\"}"))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void get_shouldReturn404_whenNotFound() throws Exception {
+        UUID id = UUID.randomUUID();
+        when(warehouseService.findById(id)).thenReturn(Optional.empty());
+        mockMvc.perform(get("/api/warehouses/" + id))
+                .andExpect(status().isNotFound());
+    }
 }

@@ -94,4 +94,46 @@ public class PurchaseOrderControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(poId.toString()));
     }
+
+    @Test
+    void list_returnsAllPurchaseOrders() throws Exception {
+        PurchaseOrder po = new PurchaseOrder();
+        po.setId(UUID.randomUUID());
+        Mockito.when(purchaseOrderService.findAll(Mockito.any(), Mockito.any())).thenReturn(java.util.List.of(po));
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/api/purchase-orders"))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void get_returnsPurchaseOrder() throws Exception {
+        UUID id = UUID.randomUUID();
+        PurchaseOrder po = new PurchaseOrder();
+        po.setId(id);
+        Mockito.when(purchaseOrderService.findById(id)).thenReturn(java.util.Optional.of(po));
+        Mockito.when(purchaseOrderLineRepository.findByPurchaseOrderId(id)).thenReturn(java.util.List.of());
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/api/purchase-orders/" + id))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void approve_returnsApprovedPo() throws Exception {
+        UUID id = UUID.randomUUID();
+        PurchaseOrder po = new PurchaseOrder();
+        po.setId(id);
+        Mockito.when(purchaseOrderService.approve(id)).thenReturn(po);
+        Mockito.when(purchaseOrderLineRepository.findByPurchaseOrderId(id)).thenReturn(java.util.List.of());
+        mockMvc.perform(put("/api/purchase-orders/" + id + "/approve"))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void cancel_returnsCancelledPo() throws Exception {
+        UUID id = UUID.randomUUID();
+        PurchaseOrder po = new PurchaseOrder();
+        po.setId(id);
+        Mockito.when(purchaseOrderService.cancel(id)).thenReturn(po);
+        Mockito.when(purchaseOrderLineRepository.findByPurchaseOrderId(id)).thenReturn(java.util.List.of());
+        mockMvc.perform(put("/api/purchase-orders/" + id + "/cancel"))
+                .andExpect(status().isOk());
+    }
 }

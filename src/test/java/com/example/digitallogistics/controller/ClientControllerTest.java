@@ -115,4 +115,33 @@ class ClientControllerTest {
         mockMvc.perform(get("/api/clients/" + id))
                 .andExpect(status().isNotFound());
     }
+
+    @Test
+    void updateClient_shouldReturnUpdated() throws Exception {
+        UUID id = UUID.randomUUID();
+        Client client = new Client();
+        client.setId(id);
+        client.setName("Updated");
+        ClientDto dto = new ClientDto();
+        dto.setId(id);
+        dto.setName("Updated");
+        when(clientService.update(eq(id), any())).thenReturn(Optional.of(client));
+        when(clientMapper.toDto(any())).thenReturn(dto);
+        mockMvc.perform(put("/api/clients/" + id)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"name\":\"Updated\"}"))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void updateClient_shouldReturn404_whenNotFound() throws Exception {
+        UUID id = UUID.randomUUID();
+        when(clientService.update(eq(id), any())).thenReturn(Optional.empty());
+        mockMvc.perform(put("/api/clients/" + id)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"name\":\"Updated\"}"))
+                .andExpect(status().isNotFound());
+    }
+
+
 }

@@ -117,4 +117,58 @@ class InventoryControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").value(75));
     }
+
+    @Test
+    void list_byWarehouse_shouldReturnFiltered() throws Exception {
+        UUID warehouseId = UUID.randomUUID();
+        Inventory inventory = new Inventory();
+        inventory.setId(UUID.randomUUID());
+        InventoryDto dto = new InventoryDto();
+        when(inventoryService.findByWarehouseId(warehouseId)).thenReturn(List.of(inventory));
+        when(inventoryMapper.toDto(any())).thenReturn(dto);
+        mockMvc.perform(get("/api/inventories?warehouseId=" + warehouseId))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void list_byProduct_shouldReturnFiltered() throws Exception {
+        UUID productId = UUID.randomUUID();
+        Inventory inventory = new Inventory();
+        inventory.setId(UUID.randomUUID());
+        InventoryDto dto = new InventoryDto();
+        when(inventoryService.findByProductId(productId)).thenReturn(List.of(inventory));
+        when(inventoryMapper.toDto(any())).thenReturn(dto);
+        mockMvc.perform(get("/api/inventories?productId=" + productId))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void updateInventory_shouldReturnUpdated() throws Exception {
+        UUID id = UUID.randomUUID();
+        Inventory inventory = new Inventory();
+        inventory.setId(id);
+        InventoryDto dto = new InventoryDto();
+        dto.setId(id);
+        dto.setWarehouseId(UUID.randomUUID());
+        dto.setProductId(UUID.randomUUID());
+        dto.setQtyOnHand(100);
+        dto.setQtyReserved(10);
+        when(inventoryService.findById(id)).thenReturn(Optional.of(inventory));
+        when(inventoryService.updateInventory(any(), any(), any(), any(), any())).thenReturn(inventory);
+        when(inventoryMapper.toDto(any())).thenReturn(dto);
+        mockMvc.perform(put("/api/inventories/" + id)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(dto)))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void getAvailableQuantity_withWarehouse_shouldReturnQuantity() throws Exception {
+        UUID productId = UUID.randomUUID();
+        UUID warehouseId = UUID.randomUUID();
+        when(inventoryService.getAvailableQuantityInWarehouse(warehouseId, productId)).thenReturn(50);
+        mockMvc.perform(get("/api/inventories/" + productId + "/available?warehouseId=" + warehouseId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").value(50));
+    }
 }

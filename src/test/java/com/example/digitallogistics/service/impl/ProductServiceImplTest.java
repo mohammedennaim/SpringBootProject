@@ -22,7 +22,9 @@ import org.springframework.data.domain.Pageable;
 
 import com.example.digitallogistics.model.entity.Inventory;
 import com.example.digitallogistics.model.entity.Product;
+import com.example.digitallogistics.model.entity.SalesOrder;
 import com.example.digitallogistics.model.entity.SalesOrderLine;
+import com.example.digitallogistics.model.enums.OrderStatus;
 import com.example.digitallogistics.repository.InventoryRepository;
 import com.example.digitallogistics.repository.ProductRepository;
 import com.example.digitallogistics.repository.SalesOrderLineRepository;
@@ -155,6 +157,42 @@ class ProductServiceImplTest {
         when(productRepository.findBySku("UNKNOWN")).thenReturn(Optional.empty());
 
         boolean result = productService.desactivate("UNKNOWN");
+
+        assertFalse(result);
+    }
+
+    @Test
+    void update_shouldReturnEmpty_whenProductNotFound() {
+        Product updates = new Product();
+        when(productRepository.findById(productId)).thenReturn(Optional.empty());
+        Optional<Product> result = productService.update(productId, updates);
+        assertFalse(result.isPresent());
+    }
+
+    @Test
+    void desactivate_shouldReturnFalseWhenInventoryHasReservedStock() {
+        Inventory inventory = Inventory.builder()
+                .id(UUID.randomUUID())
+                .qtyOnHand(10)
+                .qtyReserved(5)
+                .build();
+        
+        SalesOrder order = SalesOrder.builder()
+                .id(UUID.randomUUID())
+                .status(OrderStatus.RESERVED)
+                .build();
+        
+        SalesOrderLine orderLine = SalesOrderLine.builder()
+                .id(UUID.randomUUID())
+                .salesOrder(order)
+                .quantity(5)
+                .build();
+        
+        when(productRepository.findBySku("TEST-SKU-001")).thenReturn(Optional.of(product));
+        when(inventoryRepository.findByProductId(productId)).thenReturn(List.of(inventory));
+        when(salesOrderLineRepository.findByProductId(productId)).thenReturn(List.of(orderLine));
+
+        boolean result = productService.desactivate("TEST-SKU-001");
 
         assertFalse(result);
     }

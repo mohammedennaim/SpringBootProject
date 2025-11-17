@@ -126,4 +126,86 @@ class ManagerControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].email").value("active@manager.com"));
     }
+
+    @Test
+    void updateManager_shouldReturnUpdated() throws Exception {
+        UUID id = UUID.randomUUID();
+        Manager manager = new Manager();
+        manager.setId(id);
+        manager.setEmail("updated@manager.com");
+        ManagerDto dto = new ManagerDto();
+        dto.setId(id);
+        dto.setEmail("updated@manager.com");
+        when(managerService.update(eq(id), any())).thenReturn(Optional.of(manager));
+        when(managerMapper.toDto(any())).thenReturn(dto);
+        mockMvc.perform(put("/api/managers/" + id)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"email\":\"updated@manager.com\"}"))
+                .andExpect(status().isOk());
+    }
+
+
+
+    @Test
+    void getManagersByWarehouse_shouldReturnList() throws Exception {
+        UUID whId = UUID.randomUUID();
+        Manager manager = new Manager();
+        manager.setId(UUID.randomUUID());
+        ManagerDto dto = new ManagerDto();
+        dto.setId(manager.getId());
+        when(managerService.findByWarehouseId(whId)).thenReturn(List.of(manager));
+        when(managerMapper.toDto(any())).thenReturn(dto);
+        mockMvc.perform(get("/api/managers/warehouse/" + whId))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void createManager_shouldReturn400_whenEmailExists() throws Exception {
+        ManagerCreateDto createDto = new ManagerCreateDto();
+        createDto.setEmail("exists@manager.com");
+        Manager existing = new Manager();
+        when(managerService.findByEmail("exists@manager.com")).thenReturn(Optional.of(existing));
+        mockMvc.perform(post("/api/managers")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(createDto)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void deleteManager_shouldReturnNoContent() throws Exception {
+        UUID id = UUID.randomUUID();
+        Manager manager = new Manager();
+        manager.setId(id);
+        when(managerService.findById(id)).thenReturn(Optional.of(manager));
+        mockMvc.perform(delete("/api/managers/" + id))
+                .andExpect(status().isNoContent());
+    }
+
+    @Test
+    void getManagerById_shouldReturn404_whenNotFound() throws Exception {
+        UUID id = UUID.randomUUID();
+        when(managerService.findById(id)).thenReturn(Optional.empty());
+        mockMvc.perform(get("/api/managers/" + id))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void updateManager_shouldReturn404_whenNotFound() throws Exception {
+        UUID id = UUID.randomUUID();
+        when(managerService.update(eq(id), any())).thenReturn(Optional.empty());
+        mockMvc.perform(put("/api/managers/" + id)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"email\":\"test@test.com\"}"))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void deleteManager_shouldReturn404_whenNotFound() throws Exception {
+        UUID id = UUID.randomUUID();
+        when(managerService.findById(id)).thenReturn(Optional.empty());
+        mockMvc.perform(delete("/api/managers/" + id))
+                .andExpect(status().isNotFound());
+    }
+
+
 }

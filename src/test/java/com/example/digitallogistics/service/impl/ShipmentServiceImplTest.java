@@ -221,4 +221,85 @@ class ShipmentServiceImplTest {
         assertThrows(ResourceNotFoundException.class, 
             () -> shipmentService.getShipmentByTrackingNumber("INVALID"));
     }
+
+
+
+    @Test
+    void getShipmentsByWarehouse_shouldReturnShipments() {
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<Shipment> page = new PageImpl<>(List.of(shipment));
+        when(shipmentRepository.findByWarehouseId(warehouseId, pageable)).thenReturn(page);
+        when(shipmentMapper.toDto(any())).thenReturn(shipmentDto);
+        Page<ShipmentDto> result = shipmentService.getShipmentsByWarehouse(warehouseId, pageable);
+        assertNotNull(result);
+        assertEquals(1, result.getTotalElements());
+    }
+
+    @Test
+    void createShipment_shouldThrowException_whenCarrierNotFound() {
+        ShipmentCreateDto createDto = new ShipmentCreateDto();
+        createDto.setOrderId(orderId);
+        createDto.setWarehouseId(warehouseId);
+        createDto.setCarrierId(carrierId);
+        when(shipmentRepository.existsByOrderId(orderId)).thenReturn(false);
+        when(warehouseRepository.findById(warehouseId)).thenReturn(Optional.of(warehouse));
+        when(carrierRepository.findById(carrierId)).thenReturn(Optional.empty());
+        assertThrows(ResourceNotFoundException.class, () -> shipmentService.createShipment(createDto));
+    }
+
+
+
+    @Test
+    void deleteShipment_shouldDeleteSuccessfully() {
+        when(shipmentRepository.findById(shipmentId)).thenReturn(Optional.of(shipment));
+        shipmentService.deleteShipment(shipmentId);
+        verify(shipmentRepository).delete(shipment);
+    }
+
+    @Test
+    void deleteShipment_shouldThrowException_whenNotFound() {
+        when(shipmentRepository.findById(shipmentId)).thenReturn(Optional.empty());
+        assertThrows(ResourceNotFoundException.class, () -> shipmentService.deleteShipment(shipmentId));
+    }
+
+    @Test
+    void updateShipmentStatus_shouldThrowException_forInvalidTransition() {
+        shipment.setStatus(ShipmentStatus.DELIVERED);
+        ShipmentStatusUpdateDto statusUpdate = new ShipmentStatusUpdateDto();
+        statusUpdate.setStatus(ShipmentStatus.PLANNED);
+
+        when(shipmentRepository.findById(shipmentId)).thenReturn(Optional.of(shipment));
+
+        assertThrows(ValidationException.class, 
+            () -> shipmentService.updateShipmentStatus(shipmentId, statusUpdate));
+    }
+
+    @Test
+    void updateShipmentStatus_shouldAllowSameStatus() {
+        ShipmentStatusUpdateDto statusUpdate = new ShipmentStatusUpdateDto();
+        statusUpdate.setStatus(ShipmentStatus.PLANNED);
+
+        when(shipmentRepository.findById(shipmentId)).thenReturn(Optional.of(shipment));
+        when(shipmentRepository.save(any(Shipment.class))).thenAnswer(i -> i.getArgument(0));
+        when(shipmentMapper.toDto(any(Shipment.class))).thenReturn(shipmentDto);
+
+        ShipmentDto result = shipmentService.updateShipmentStatus(shipmentId, statusUpdate);
+
+        assertNotNull(result);
+    }
+
+    @Test
+    void updateShipmentStatus_shouldUpdateToDelivered() {
+        shipment.setStatus(ShipmentStatus.IN_TRANSIT);
+        ShipmentStatusUpdateDto statusUpdate = new ShipmentStatusUpdateDto();
+        statusUpdate.setStatus(ShipmentStatus.DELIVERED);
+
+        when(shipmentRepository.findById(shipmentId)).thenReturn(Optional.of(shipment));
+        when(shipmentRepository.save(any(Shipment.class))).thenAnswer(i -> i.getArgument(0));
+        when(shipmentMapper.toDto(any(Shipment.class))).thenReturn(shipmentDto);
+
+        ShipmentDto result = shipmentService.updateShipmentStatus(shipmentId, statusUpdate);
+
+        assertNotNull(result);
+    }
 }

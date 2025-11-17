@@ -131,4 +131,83 @@ class SalesOrderServiceImplTest {
         assertEquals(OrderStatus.CANCELED, result.getStatus());
         verify(inventoryRepository).save(any(Inventory.class));
     }
+
+    @Test
+    void findById_shouldReturnOrder() {
+        UUID orderId = UUID.randomUUID();
+        SalesOrder order = SalesOrder.builder().id(orderId).status(OrderStatus.CREATED).build();
+        when(salesOrderRepository.findById(orderId)).thenReturn(Optional.of(order));
+        Optional<SalesOrder> result = salesOrderService.findById(orderId);
+        assertTrue(result.isPresent());
+    }
+
+    @Test
+    void ship_shouldUpdateStatusToShipped() {
+        UUID orderId = UUID.randomUUID();
+        SalesOrder order = SalesOrder.builder().id(orderId).status(OrderStatus.RESERVED).build();
+        when(salesOrderRepository.findById(orderId)).thenReturn(Optional.of(order));
+        when(salesOrderRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+        SalesOrder result = salesOrderService.ship(orderId);
+        assertEquals(OrderStatus.SHIPPED, result.getStatus());
+    }
+
+    @Test
+    void deliver_shouldUpdateStatusToDelivered() {
+        UUID orderId = UUID.randomUUID();
+        SalesOrder order = SalesOrder.builder().id(orderId).status(OrderStatus.SHIPPED).build();
+        when(salesOrderRepository.findById(orderId)).thenReturn(Optional.of(order));
+        when(salesOrderRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+        SalesOrder result = salesOrderService.deliver(orderId);
+        assertEquals(OrderStatus.DELIVERED, result.getStatus());
+    }
+
+    @Test
+    void create_withMultipleLines_shouldReserveAll() {
+        SalesOrderCreateDto dto = new SalesOrderCreateDto();
+        dto.setClientId(clientId);
+        UUID productId2 = UUID.randomUUID();
+        SalesOrderLineCreateDto line1 = new SalesOrderLineCreateDto();
+        line1.setProductId(productId);
+        line1.setQuantity(2);
+        SalesOrderLineCreateDto line2 = new SalesOrderLineCreateDto();
+        line2.setProductId(productId2);
+        line2.setQuantity(1);
+        dto.setLines(List.of(line1, line2));
+
+        Product p1 = new Product();
+        p1.setId(productId);
+        p1.setUnitPrice(BigDecimal.TEN);
+        Product p2 = new Product();
+        p2.setId(productId2);
+        p2.setUnitPrice(BigDecimal.valueOf(20));
+
+        Inventory inv1 = Inventory.builder().id(UUID.randomUUID()).product(p1).qtyOnHand(5).qtyReserved(0).build();
+        Inventory inv2 = Inventory.builder().id(UUID.randomUUID()).product(p2).qtyOnHand(3).qtyReserved(0).build();
+
+        when(inventoryRepository.findByProductId(productId)).thenReturn(List.of(inv1));
+        when(inventoryRepository.findByProductId(productId2)).thenReturn(List.of(inv2));
+        when(productRepository.findById(productId)).thenReturn(Optional.of(p1));
+        when(productRepository.findById(productId2)).thenReturn(Optional.of(p2));
+        when(salesOrderRepository.save(any(SalesOrder.class))).thenAnswer(i -> {
+            SalesOrder o = i.getArgument(0);
+            o.setId(UUID.randomUUID());
+            return o;
+        });
+        when(salesOrderLineRepository.save(any(SalesOrderLine.class))).thenAnswer(i -> i.getArgument(0));
+        when(inventoryRepository.save(any(Inventory.class))).thenAnswer(i -> i.getArgument(0));
+
+        SalesOrder result = salesOrderService.create(dto);
+        assertNotNull(result);
+        verify(inventoryRepository, atLeast(2)).save(any(Inventory.class));
+    }
+
+    @Test
+    void cancel_shouldNotReleaseIfAlreadyCanceled() {
+        UUID orderId = UUID.randomUUID();
+        SalesOrder order = SalesOrder.builder().id(orderId).status(OrderStatus.CANCELED).build();
+        when(salesOrderRepository.findById(orderId)).thenReturn(Optional.of(order));
+        when(salesOrderRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+        SalesOrder result = salesOrderService.cancel(orderId);
+        assertEquals(OrderStatus.CANCELED, result.getStatus());
+    }
 }

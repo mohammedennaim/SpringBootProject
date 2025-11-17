@@ -215,4 +215,12 @@ class CarrierServiceImplTest {
             () -> carrierService.deleteCarrier(carrierId));
         verify(carrierRepository, never()).delete(any());
     }
+
+    @Test
+    void updateCarrierStatus_shouldThrowException_whenNotFound() {
+        CarrierStatusUpdateDto statusDto = new CarrierStatusUpdateDto();
+        statusDto.setStatus(CarrierStatus.INACTIVE);
+        when(carrierRepository.findById(carrierId)).thenReturn(Optional.empty());
+        assertThrows(ResourceNotFoundException.class, () -> carrierService.updateCarrierStatus(carrierId, statusDto));
+    }
 }

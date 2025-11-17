@@ -233,4 +233,35 @@ class ManagerServiceImplTest {
         assertFalse(result.isPresent());
         verify(managerRepository).findByEmail("notfound@example.com");
     }
+
+    @Test
+    void assignWarehouse_shouldAddWarehouseToManager() {
+        when(managerRepository.findById(managerId)).thenReturn(Optional.of(manager));
+        when(warehouseRepository.findById(warehouseId)).thenReturn(Optional.of(warehouse));
+        when(managerRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+        assertDoesNotThrow(() -> managerService.assignWarehouse(managerId, warehouseId));
+        verify(managerRepository).save(any());
+    }
+
+    @Test
+    void removeWarehouse_shouldRemoveWarehouseFromManager() {
+        when(managerRepository.findById(managerId)).thenReturn(Optional.of(manager));
+        when(warehouseRepository.findById(warehouseId)).thenReturn(Optional.of(warehouse));
+        when(managerRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+        assertDoesNotThrow(() -> managerService.removeWarehouse(managerId, warehouseId));
+        verify(managerRepository).save(any());
+    }
+
+    @Test
+    void assignWarehouses_shouldAddMultipleWarehouses() {
+        UUID wh2Id = UUID.randomUUID();
+        Warehouse wh2 = new Warehouse();
+        wh2.setId(wh2Id);
+        when(managerRepository.findById(managerId)).thenReturn(Optional.of(manager));
+        when(warehouseRepository.findById(warehouseId)).thenReturn(Optional.of(warehouse));
+        when(warehouseRepository.findById(wh2Id)).thenReturn(Optional.of(wh2));
+        when(managerRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+        assertDoesNotThrow(() -> managerService.assignWarehouses(managerId, List.of(warehouseId, wh2Id)));
+        verify(managerRepository).save(any());
+    }
 }

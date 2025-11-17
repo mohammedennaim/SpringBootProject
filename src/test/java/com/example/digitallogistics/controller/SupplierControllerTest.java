@@ -118,4 +118,31 @@ class SupplierControllerTest {
         mockMvc.perform(delete("/api/suppliers/" + id))
                 .andExpect(status().isNoContent());
     }
+
+    @Test
+    void update_shouldReturnUpdated() throws Exception {
+        UUID id = UUID.randomUUID();
+        Supplier supplier = new Supplier();
+        supplier.setId(id);
+        SupplierDto dto = new SupplierDto();
+        dto.setId(id);
+        when(supplierService.findById(id)).thenReturn(Optional.of(supplier));
+        when(supplierService.update(eq(id), any())).thenReturn(Optional.of(supplier));
+        when(supplierMapper.toDto(any())).thenReturn(dto);
+        mockMvc.perform(put("/api/suppliers/" + id)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"name\":\"Updated\"}"))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void list_withSearch_shouldReturnFiltered() throws Exception {
+        Supplier supplier = new Supplier();
+        supplier.setId(UUID.randomUUID());
+        SupplierDto dto = new SupplierDto();
+        when(supplierService.findByNameContaining("test")).thenReturn(List.of(supplier));
+        when(supplierMapper.toDto(any())).thenReturn(dto);
+        mockMvc.perform(get("/api/suppliers?search=test"))
+                .andExpect(status().isOk());
+    }
 }

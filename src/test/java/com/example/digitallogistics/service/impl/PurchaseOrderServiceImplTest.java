@@ -147,4 +147,36 @@ class PurchaseOrderServiceImplTest {
         assertEquals(PurchaseOrderStatus.CANCELED, res.getStatus());
         verify(purchaseOrderRepository).save(any(PurchaseOrder.class));
     }
+
+    @Test
+    void findById_shouldReturnOrder() {
+        PurchaseOrder po = PurchaseOrder.builder().id(poId).build();
+        when(purchaseOrderRepository.findById(poId)).thenReturn(Optional.of(po));
+        Optional<PurchaseOrder> result = service.findById(poId);
+        assertTrue(result.isPresent());
+    }
+
+    @Test
+    void receive_shouldUpdateExistingInventory() {
+        Product prod = new Product();
+        prod.setId(productId);
+        PurchaseOrderLine pol = PurchaseOrderLine.builder().id(lineId).product(prod).quantity(5).build();
+        PurchaseOrder po = PurchaseOrder.builder().id(poId).status(PurchaseOrderStatus.APPROVED).build();
+        Inventory inv = Inventory.builder().id(UUID.randomUUID()).qtyOnHand(10).build();
+
+        when(purchaseOrderRepository.findById(poId)).thenReturn(Optional.of(po));
+        when(purchaseOrderLineRepository.findById(lineId)).thenReturn(Optional.of(pol));
+        when(inventoryRepository.findByWarehouseIdAndProductId(warehouseId, productId)).thenReturn(Optional.of(inv));
+        when(inventoryRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+        when(purchaseOrderRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+
+        PurchaseOrderReceiveLineDto lr = PurchaseOrderReceiveLineDto.builder()
+                .lineId(lineId)
+                .receivedQuantity(3)
+                .build();
+        PurchaseOrderReceiveDto dto = PurchaseOrderReceiveDto.builder().lines(List.of(lr)).build();
+
+        PurchaseOrder res = service.receive(poId, dto, warehouseId);
+        assertEquals(PurchaseOrderStatus.RECEIVED, res.getStatus());
+    }
 }
