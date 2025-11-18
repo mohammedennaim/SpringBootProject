@@ -57,6 +57,9 @@ public class ProductServiceImpl implements ProductService {
             existing.setCategory(product.getCategory());
             existing.setUnitPrice(product.getUnitPrice());
             existing.setActive(product.isActive());
+            if (product.getImage() != null) {
+                existing.setImage(product.getImage());
+            }
             return productRepository.save(existing);
         });
     }

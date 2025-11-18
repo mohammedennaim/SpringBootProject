@@ -28,4 +28,7 @@ public class ProductUpdateDto {
     private BigDecimal profit;
 
     private Boolean active;
+
+    @Size(max = 500, message = "Image URL must not exceed 500 characters")
+    private String image;
 }

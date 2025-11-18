@@ -20,4 +20,5 @@ public class ProductDto {
     private BigDecimal unitPrice;
     private BigDecimal profit;
     private boolean active;
+    private String image;
 }

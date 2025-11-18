@@ -34,4 +34,7 @@ public class ProductCreateDto {
 
     @DecimalMin(value = "0.00", message = "Profit must be zero or positive")
     private BigDecimal profit;
+
+    @Size(max = 500, message = "Image URL must not exceed 500 characters")
+    private String image;
 }
