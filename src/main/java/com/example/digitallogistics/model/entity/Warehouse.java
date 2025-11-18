@@ -32,6 +32,9 @@ public class Warehouse {
     @Column(name = "active")
     private Boolean active;
 
+    @Column(name = "priority")
+    private Integer priority;
+
     // Relation ManyToOne avec Manager : plusieurs entrepôts peuvent être gérés par un manager
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "manager_id")

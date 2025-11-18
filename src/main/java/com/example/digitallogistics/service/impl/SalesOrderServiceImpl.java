@@ -1,5 +1,6 @@
 package com.example.digitallogistics.service.impl;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -27,6 +28,7 @@ import com.example.digitallogistics.repository.ClientRepository;
 import com.example.digitallogistics.exception.ValidationException;
 import com.example.digitallogistics.exception.ResourceNotFoundException;
 import com.example.digitallogistics.exception.OrderStateException;
+import com.example.digitallogistics.service.AdvancedLogisticsService;
 
 @Service
 public class SalesOrderServiceImpl implements SalesOrderService {
@@ -37,17 +39,19 @@ public class SalesOrderServiceImpl implements SalesOrderService {
     private final ProductRepository productRepository;
     private final ClientRepository clientRepository;
     private final UserMapper userMapper;
+    private final AdvancedLogisticsService advancedLogisticsService;
 
     public SalesOrderServiceImpl(SalesOrderRepository salesOrderRepository,
             SalesOrderLineRepository salesOrderLineRepository, InventoryRepository inventoryRepository,
             ProductRepository productRepository, ClientRepository clientRepository,
-                                 UserMapper userMapper) {
+                                 UserMapper userMapper, AdvancedLogisticsService advancedLogisticsService) {
         this.salesOrderRepository = salesOrderRepository;
         this.salesOrderLineRepository = salesOrderLineRepository;
         this.inventoryRepository = inventoryRepository;
         this.productRepository = productRepository;
         this.clientRepository = clientRepository;
         this.userMapper = userMapper;
+        this.advancedLogisticsService = advancedLogisticsService;
     }
 
     @Override
@@ -64,15 +68,18 @@ public class SalesOrderServiceImpl implements SalesOrderService {
     @Override
     @Transactional
     public SalesOrder create(SalesOrderCreateDto dto) {
-        validateInventoryAvailability(dto.getLines());
-        
         SalesOrder order = createOrderEntity(dto);
         SalesOrder saved = salesOrderRepository.save(order);
         
-        List<SalesOrderLine> lines = createOrderLines(dto.getLines(), saved);
-        reserveInventoryForLines(lines);
+        createOrderLines(dto.getLines(), saved);
         
-        saved.setStatus(OrderStatus.RESERVED);
+        // Utiliser les nouvelles règles métier pour la réservation
+        if (advancedLogisticsService.reserveStock(saved)) {
+            saved.setStatus(OrderStatus.RESERVED);
+        } else {
+            saved.setStatus(OrderStatus.CREATED); // Partiellement réservé avec back orders
+        }
+        
         return salesOrderRepository.save(saved);
     }
 
@@ -103,7 +110,16 @@ public class SalesOrderServiceImpl implements SalesOrderService {
     @Transactional
     public SalesOrder ship(UUID id) {
         SalesOrder order = findOrderById(id);
+        
+        // Vérifier que la commande peut être expédiée (réservation obligatoire)
+        if (!advancedLogisticsService.canShipOrder(id)) {
+            throw new OrderStateException("Order cannot be shipped: no active reservations found");
+        }
+        
         validateOrderStatus(order, OrderStatus.RESERVED, "Only RESERVED orders can be shipped");
+        
+        // Calculer la date d'expédition selon le cut-off
+        LocalDate shipmentDate = advancedLogisticsService.calculateShipmentDate(LocalDate.now());
         
         order.setStatus(OrderStatus.SHIPPED);
         order.setShippedAt(LocalDateTime.now());

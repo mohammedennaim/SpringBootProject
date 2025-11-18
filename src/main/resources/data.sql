@@ -70,26 +70,34 @@ CREATE TABLE IF NOT EXISTS warehouses (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid (),
     code VARCHAR(255),
     name VARCHAR(255) NOT NULL,
-    active BOOLEAN DEFAULT TRUE
+    active BOOLEAN DEFAULT TRUE,
+    priority INTEGER DEFAULT 1
 );
 
 INSERT INTO
-    warehouses (code, name, active)
+    warehouses (code, name, active, priority)
 VALUES (
         'MAIN',
         'Main Warehouse',
-        TRUE
+        TRUE,
+        1
     ),
     (
         'BACKUP',
         'Backup Warehouse',
-        TRUE
+        TRUE,
+        2
     ),
     (
         'EAST',
         'East Warehouse',
-        TRUE
-    );
+        TRUE,
+        3
+    )
+ON CONFLICT (code) DO UPDATE SET
+  name = EXCLUDED.name,
+  active = EXCLUDED.active,
+  priority = EXCLUDED.priority;
 
 -- Ensure we don't create duplicate warehouses by making code unique
 CREATE UNIQUE INDEX IF NOT EXISTS idx_warehouses_code ON warehouses(code);
@@ -131,7 +139,9 @@ VALUES (
     (
         'Supplier Three',
         'supplier3@example.com'
-    );
+    )
+ON CONFLICT (name) DO UPDATE SET
+  contact_info = EXCLUDED.contact_info;
 
 -- Make supplier names unique to allow idempotent inserts
 CREATE UNIQUE INDEX IF NOT EXISTS idx_suppliers_name ON suppliers(name);
@@ -190,7 +200,14 @@ VALUES (
         60,
         6.00,
         'INACTIVE'
-    );
+    )
+ON CONFLICT (code) DO UPDATE SET
+  name = EXCLUDED.name,
+  email = EXCLUDED.email,
+  phone = EXCLUDED.phone,
+  max_daily_shipments = EXCLUDED.max_daily_shipments,
+  shipping_rate = EXCLUDED.shipping_rate,
+  status = EXCLUDED.status;
 
 -- Make carrier code unique so repeated runs don't create duplicates
 CREATE UNIQUE INDEX IF NOT EXISTS idx_carriers_code ON carriers(code);
@@ -243,7 +260,14 @@ VALUES (
         1.05,
         TRUE,
         'https://via.placeholder.com/300x300?text=Product+C'
-    );
+    )
+ON CONFLICT (sku) DO UPDATE SET
+  name = EXCLUDED.name,
+  category = EXCLUDED.category,
+  unit_price = EXCLUDED.unit_price,
+  profit = EXCLUDED.profit,
+  active = EXCLUDED.active,
+  image = EXCLUDED.image;
 
 -- Make product SKU unique to allow idempotent inserts
 CREATE UNIQUE INDEX IF NOT EXISTS idx_products_sku ON products(sku);
@@ -266,12 +290,35 @@ BEGIN
     ) THEN
         ALTER TABLE products ADD COLUMN image VARCHAR(500);
     END IF;
+    
+    -- Ajouter la colonne priority aux warehouses si elle n'existe pas
+    IF NOT EXISTS (
+        SELECT 1
+        FROM information_schema.columns
+        WHERE table_name='warehouses' AND column_name='priority'
+    ) THEN
+        ALTER TABLE warehouses ADD COLUMN priority INTEGER DEFAULT 1;
+    END IF;
 END$$;
 
--- Populate profit values for seeded SKUs if null
-UPDATE products SET profit = 1.10 WHERE sku = 'SKU-A' AND (profit IS NULL OR profit = 0);
-UPDATE products SET profit = 1.25 WHERE sku = 'SKU-B' AND (profit IS NULL OR profit = 0);
-UPDATE products SET profit = 1.05 WHERE sku = 'SKU-C' AND (profit IS NULL OR profit = 0);
+-- Populate profit and image values for seeded SKUs if null
+UPDATE products SET 
+  profit = 1.10,
+  image = 'https://via.placeholder.com/300x300?text=Product+A'
+WHERE sku = 'SKU-A' AND (profit IS NULL OR profit = 0 OR image IS NULL);
+
+UPDATE products SET 
+  profit = 1.25,
+  image = 'https://via.placeholder.com/300x300?text=Product+B'
+WHERE sku = 'SKU-B' AND (profit IS NULL OR profit = 0 OR image IS NULL);
+
+UPDATE products SET 
+  profit = 1.05,
+  image = 'https://via.placeholder.com/300x300?text=Product+C'
+WHERE sku = 'SKU-C' AND (profit IS NULL OR profit = 0 OR image IS NULL);
+
+-- Update warehouses priority if null
+UPDATE warehouses SET priority = 1 WHERE priority IS NULL;
 
 -- Inventories
 CREATE TABLE IF NOT EXISTS inventories (
@@ -284,13 +331,18 @@ CREATE TABLE IF NOT EXISTS inventories (
     CONSTRAINT fk_inventory_warehouse FOREIGN KEY (warehouse_id) REFERENCES warehouses (id) ON DELETE CASCADE
 );
 
+-- Add unique constraint for inventories
+CREATE UNIQUE INDEX IF NOT EXISTS idx_inventories_product_warehouse ON inventories(product_id, warehouse_id);
+
 -- Inventories: insert per (product,warehouse) using subselects
 INSERT INTO inventories (product_id, warehouse_id, qty_on_hand, qty_reserved)
 VALUES
   ((SELECT id FROM products WHERE sku = 'SKU-A'), (SELECT id FROM warehouses WHERE code = 'MAIN'), 100, 5),
   ((SELECT id FROM products WHERE sku = 'SKU-B'), (SELECT id FROM warehouses WHERE code = 'BACKUP'), 50, 10),
   ((SELECT id FROM products WHERE sku = 'SKU-C'), (SELECT id FROM warehouses WHERE code = 'EAST'), 200, 0)
-ON CONFLICT DO NOTHING;
+ON CONFLICT (product_id, warehouse_id) DO UPDATE SET
+  qty_on_hand = EXCLUDED.qty_on_hand,
+  qty_reserved = EXCLUDED.qty_reserved;
 
 -- Inventory Movements
 CREATE TABLE IF NOT EXISTS inventory_movements (
@@ -442,6 +494,88 @@ VALUES
 ON CONFLICT DO NOTHING;
 
 -- =================================================
+-- Advanced Logistics Tables
+-- =================================================
+
+-- Reservations
+CREATE TABLE IF NOT EXISTS reservations (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    sales_order_id UUID NOT NULL,
+    inventory_id UUID NOT NULL,
+    quantity INTEGER NOT NULL CHECK (quantity > 0),
+    reserved_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    expires_at TIMESTAMP NOT NULL,
+    is_active BOOLEAN NOT NULL DEFAULT true,
+    CONSTRAINT fk_reservation_order FOREIGN KEY (sales_order_id) REFERENCES sales_orders(id) ON DELETE CASCADE,
+    CONSTRAINT fk_reservation_inventory FOREIGN KEY (inventory_id) REFERENCES inventories(id) ON DELETE CASCADE
+);
+
+-- Back Orders
+CREATE TABLE IF NOT EXISTS back_orders (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    original_order_id UUID NOT NULL,
+    product_id UUID NOT NULL,
+    warehouse_id UUID,
+    quantity_needed INTEGER NOT NULL CHECK (quantity_needed > 0),
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    fulfilled_at TIMESTAMP,
+    is_fulfilled BOOLEAN NOT NULL DEFAULT false,
+    CONSTRAINT fk_backorder_order FOREIGN KEY (original_order_id) REFERENCES sales_orders(id) ON DELETE CASCADE,
+    CONSTRAINT fk_backorder_product FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE,
+    CONSTRAINT fk_backorder_warehouse FOREIGN KEY (warehouse_id) REFERENCES warehouses(id) ON DELETE SET NULL
+);
+
+-- Shipment Slots
+CREATE TABLE IF NOT EXISTS shipment_slots (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    warehouse_id UUID NOT NULL,
+    slot_date DATE NOT NULL,
+    max_capacity INTEGER NOT NULL DEFAULT 100,
+    current_usage INTEGER NOT NULL DEFAULT 0,
+    CONSTRAINT fk_slot_warehouse FOREIGN KEY (warehouse_id) REFERENCES warehouses(id) ON DELETE CASCADE,
+    UNIQUE(warehouse_id, slot_date)
+);
+
+-- Sample data for Reservations
+INSERT INTO reservations (sales_order_id, inventory_id, quantity, reserved_at, expires_at, is_active)
+VALUES
+  ((SELECT id FROM sales_orders ORDER BY id LIMIT 1), 
+   (SELECT id FROM inventories WHERE product_id = (SELECT id FROM products WHERE sku='SKU-A') LIMIT 1), 
+   5, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP + INTERVAL '24 hours', true),
+  ((SELECT id FROM sales_orders ORDER BY id OFFSET 1 LIMIT 1), 
+   (SELECT id FROM inventories WHERE product_id = (SELECT id FROM products WHERE sku='SKU-B') LIMIT 1), 
+   2, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP + INTERVAL '24 hours', true)
+ON CONFLICT DO NOTHING;
+
+-- Sample data for Back Orders
+INSERT INTO back_orders (original_order_id, product_id, warehouse_id, quantity_needed, created_at, is_fulfilled)
+VALUES
+  ((SELECT id FROM sales_orders ORDER BY id OFFSET 2 LIMIT 1), 
+   (SELECT id FROM products WHERE sku='SKU-C'), 
+   (SELECT id FROM warehouses WHERE code='EAST'), 
+   5, CURRENT_TIMESTAMP, false)
+ON CONFLICT DO NOTHING;
+
+-- Sample data for Shipment Slots
+INSERT INTO shipment_slots (warehouse_id, slot_date, max_capacity, current_usage)
+VALUES
+  ((SELECT id FROM warehouses WHERE code='MAIN'), CURRENT_DATE, 100, 25),
+  ((SELECT id FROM warehouses WHERE code='MAIN'), CURRENT_DATE + INTERVAL '1 day', 100, 0),
+  ((SELECT id FROM warehouses WHERE code='BACKUP'), CURRENT_DATE, 80, 15),
+  ((SELECT id FROM warehouses WHERE code='BACKUP'), CURRENT_DATE + INTERVAL '1 day', 80, 0),
+  ((SELECT id FROM warehouses WHERE code='EAST'), CURRENT_DATE, 60, 10),
+  ((SELECT id FROM warehouses WHERE code='EAST'), CURRENT_DATE + INTERVAL '1 day', 60, 0)
+ON CONFLICT (warehouse_id, slot_date) DO NOTHING;
+
+-- Indexes for performance
+CREATE INDEX IF NOT EXISTS idx_reservations_expires_at ON reservations(expires_at);
+CREATE INDEX IF NOT EXISTS idx_reservations_sales_order ON reservations(sales_order_id);
+CREATE INDEX IF NOT EXISTS idx_reservations_inventory ON reservations(inventory_id);
+CREATE INDEX IF NOT EXISTS idx_back_orders_product_warehouse ON back_orders(product_id, warehouse_id);
+CREATE INDEX IF NOT EXISTS idx_back_orders_fulfilled ON back_orders(is_fulfilled);
+CREATE INDEX IF NOT EXISTS idx_shipment_slots_warehouse_date ON shipment_slots(warehouse_id, slot_date);
+
+-- =================================================
 -- Migration: manager -> warehouses (one-to-many)
 -- Safe idempotent approach WITHOUT dropping existing tables.
 -- This will add a `manager_id` column to `warehouses` if missing,
@@ -457,6 +591,17 @@ BEGIN
     ) THEN
         ALTER TABLE warehouses ADD COLUMN manager_id UUID;
     END IF;
+
+    -- Add priority column to warehouses if it doesn't exist
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_schema = 'public' AND table_name = 'warehouses' AND column_name = 'priority'
+    ) THEN
+        ALTER TABLE warehouses ADD COLUMN priority INTEGER DEFAULT 1;
+    END IF;
+
+    -- Update priority for existing warehouses
+    UPDATE warehouses SET priority = 1 WHERE priority IS NULL;
 
     -- Populate warehouses.manager_id from managers.warehouse_id where applicable
     -- Only update rows where manager_id is currently null to avoid overwriting existing values

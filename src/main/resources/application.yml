@@ -19,12 +19,23 @@ spring:
   
   sql:
     init:
-      mode: never
+      mode: always
+      data-locations: classpath:data.sql
 
 app:
   jwt:
     secret: ${JWT_SECRET:YourVerySecureRandomSecretKeyHereMustBeAtLeast32CharactersLong!@#}
     expiration-ms: ${JWT_EXPIRATION:3600000}
+
+logistics:
+  cutoff:
+    hour: ${LOGISTICS_CUTOFF_HOUR:15}
+  reservation:
+    ttl:
+      hours: ${LOGISTICS_RESERVATION_TTL_HOURS:24}
+  shipment:
+    default:
+      capacity: ${LOGISTICS_SHIPMENT_DEFAULT_CAPACITY:100}
 
 server:
   port: ${SERVER_PORT:8090}

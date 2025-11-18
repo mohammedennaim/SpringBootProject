@@ -38,6 +38,8 @@ class SalesOrderServiceImplTest {
     private ClientRepository clientRepository;
     @Mock
     private com.example.digitallogistics.model.mapper.UserMapper userMapper;
+    @Mock
+    private com.example.digitallogistics.service.AdvancedLogisticsService advancedLogisticsService;
 
     @InjectMocks
     private SalesOrderServiceImpl salesOrderService;
@@ -66,7 +68,6 @@ class SalesOrderServiceImplTest {
 
         Inventory inv = Inventory.builder().id(UUID.randomUUID()).product(p).qtyOnHand(5).qtyReserved(0).build();
 
-        when(inventoryRepository.findByProductId(productId)).thenReturn(List.of(inv));
         when(productRepository.findById(productId)).thenReturn(Optional.of(p));
         when(salesOrderRepository.save(any(SalesOrder.class))).thenAnswer(i -> {
             SalesOrder o = i.getArgument(0);
@@ -74,17 +75,17 @@ class SalesOrderServiceImplTest {
             return o;
         });
         when(salesOrderLineRepository.save(any(SalesOrderLine.class))).thenAnswer(i -> i.getArgument(0));
-        when(inventoryRepository.save(any(Inventory.class))).thenAnswer(i -> i.getArgument(0));
+        when(advancedLogisticsService.reserveStock(any(SalesOrder.class))).thenReturn(true);
 
         SalesOrder result = salesOrderService.create(dto);
 
         assertNotNull(result);
         assertEquals(OrderStatus.RESERVED, result.getStatus());
-        verify(inventoryRepository, atLeastOnce()).save(any(Inventory.class));
+        verify(advancedLogisticsService).reserveStock(any(SalesOrder.class));
     }
 
     @Test
-    void create_withInsufficientInventory_throwsValidationException() {
+    void create_withInsufficientInventory_createsBackOrder() {
         SalesOrderCreateDto dto = new SalesOrderCreateDto();
         dto.setClientId(clientId);
         SalesOrderLineCreateDto lineDto = new SalesOrderLineCreateDto();
@@ -92,10 +93,23 @@ class SalesOrderServiceImplTest {
         lineDto.setQuantity(10);
         dto.setLines(List.of(lineDto));
 
-        when(inventoryRepository.findByProductId(productId)).thenReturn(List.of());
+        Product p = new Product();
+        p.setId(productId);
+        p.setUnitPrice(BigDecimal.TEN);
 
-        ValidationException ex = assertThrows(ValidationException.class, () -> salesOrderService.create(dto));
-        assertTrue(ex.getMessage().contains("Insufficient inventory"));
+        when(productRepository.findById(productId)).thenReturn(Optional.of(p));
+        when(salesOrderRepository.save(any(SalesOrder.class))).thenAnswer(i -> {
+            SalesOrder o = i.getArgument(0);
+            o.setId(UUID.randomUUID());
+            return o;
+        });
+        when(salesOrderLineRepository.save(any(SalesOrderLine.class))).thenAnswer(i -> i.getArgument(0));
+        when(advancedLogisticsService.reserveStock(any(SalesOrder.class))).thenReturn(false);
+
+        SalesOrder result = salesOrderService.create(dto);
+        
+        assertNotNull(result);
+        assertEquals(OrderStatus.CREATED, result.getStatus());
     }
 
     @Test
@@ -147,6 +161,9 @@ class SalesOrderServiceImplTest {
         SalesOrder order = SalesOrder.builder().id(orderId).status(OrderStatus.RESERVED).build();
         when(salesOrderRepository.findById(orderId)).thenReturn(Optional.of(order));
         when(salesOrderRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+        when(advancedLogisticsService.canShipOrder(orderId)).thenReturn(true);
+        when(advancedLogisticsService.calculateShipmentDate(any())).thenReturn(java.time.LocalDate.now());
+        
         SalesOrder result = salesOrderService.ship(orderId);
         assertEquals(OrderStatus.SHIPPED, result.getStatus());
     }
@@ -184,8 +201,6 @@ class SalesOrderServiceImplTest {
         Inventory inv1 = Inventory.builder().id(UUID.randomUUID()).product(p1).qtyOnHand(5).qtyReserved(0).build();
         Inventory inv2 = Inventory.builder().id(UUID.randomUUID()).product(p2).qtyOnHand(3).qtyReserved(0).build();
 
-        when(inventoryRepository.findByProductId(productId)).thenReturn(List.of(inv1));
-        when(inventoryRepository.findByProductId(productId2)).thenReturn(List.of(inv2));
         when(productRepository.findById(productId)).thenReturn(Optional.of(p1));
         when(productRepository.findById(productId2)).thenReturn(Optional.of(p2));
         when(salesOrderRepository.save(any(SalesOrder.class))).thenAnswer(i -> {
@@ -194,11 +209,12 @@ class SalesOrderServiceImplTest {
             return o;
         });
         when(salesOrderLineRepository.save(any(SalesOrderLine.class))).thenAnswer(i -> i.getArgument(0));
-        when(inventoryRepository.save(any(Inventory.class))).thenAnswer(i -> i.getArgument(0));
+        when(advancedLogisticsService.reserveStock(any(SalesOrder.class))).thenReturn(true);
 
         SalesOrder result = salesOrderService.create(dto);
         assertNotNull(result);
-        verify(inventoryRepository, atLeast(2)).save(any(Inventory.class));
+        assertEquals(OrderStatus.RESERVED, result.getStatus());
+        verify(advancedLogisticsService).reserveStock(any(SalesOrder.class));
     }
 
     @Test
