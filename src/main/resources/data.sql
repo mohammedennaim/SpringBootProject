@@ -203,7 +203,8 @@ CREATE TABLE IF NOT EXISTS products (
     category VARCHAR(255),
     unit_price NUMERIC(10, 2),
     profit NUMERIC(10, 2) DEFAULT 1.00,
-    active BOOLEAN DEFAULT TRUE
+    active BOOLEAN DEFAULT TRUE,
+    image VARCHAR(500)
 );
 
 INSERT INTO
@@ -213,7 +214,8 @@ INSERT INTO
         category,
         unit_price,
         profit,
-        active
+        active,
+        image
     )
 VALUES (
         'SKU-A',
@@ -221,7 +223,8 @@ VALUES (
         'General',
         100.00,
         1.10,
-        TRUE
+        TRUE,
+        'https://via.placeholder.com/300x300?text=Product+A'
     ),
     (
         'SKU-B',
@@ -229,7 +232,8 @@ VALUES (
         'Electronics',
         250.00,
         1.25,
-        TRUE
+        TRUE,
+        'https://via.placeholder.com/300x300?text=Product+B'
     ),
     (
         'SKU-C',
@@ -237,13 +241,14 @@ VALUES (
         'Accessories',
         75.00,
         1.05,
-        TRUE
+        TRUE,
+        'https://via.placeholder.com/300x300?text=Product+C'
     );
 
 -- Make product SKU unique to allow idempotent inserts
 CREATE UNIQUE INDEX IF NOT EXISTS idx_products_sku ON products(sku);
 
--- Migration: ensure product 'profit' column exists for older DBs
+-- Migration: ensure product 'profit' and 'image' columns exist for older DBs
 DO $$
 BEGIN
     IF NOT EXISTS (
@@ -252,6 +257,14 @@ BEGIN
         WHERE table_name='products' AND column_name='profit'
     ) THEN
         ALTER TABLE products ADD COLUMN profit NUMERIC(10,2) DEFAULT 1.00;
+    END IF;
+    
+    IF NOT EXISTS (
+        SELECT 1
+        FROM information_schema.columns
+        WHERE table_name='products' AND column_name='image'
+    ) THEN
+        ALTER TABLE products ADD COLUMN image VARCHAR(500);
     END IF;
 END$$;
 
