@@ -9,6 +9,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import com.example.digitallogistics.model.mapper.UserMapper;
+import com.example.digitallogistics.service.AdvancedLogisticsService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -16,7 +18,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.example.digitallogistics.exception.ValidationException;
 import com.example.digitallogistics.model.dto.SalesOrderCreateDto;
 import com.example.digitallogistics.model.dto.SalesOrderLineCreateDto;
 import com.example.digitallogistics.model.entity.*;
@@ -37,9 +38,9 @@ class SalesOrderServiceImplTest {
     @Mock
     private ClientRepository clientRepository;
     @Mock
-    private com.example.digitallogistics.model.mapper.UserMapper userMapper;
+    private UserMapper userMapper;
     @Mock
-    private com.example.digitallogistics.service.AdvancedLogisticsService advancedLogisticsService;
+    private AdvancedLogisticsService advancedLogisticsService;
 
     @InjectMocks
     private SalesOrderServiceImpl salesOrderService;
