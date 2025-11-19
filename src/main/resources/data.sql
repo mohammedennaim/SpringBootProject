@@ -299,7 +299,7 @@ BEGIN
     ) THEN
         ALTER TABLE warehouses ADD COLUMN priority INTEGER DEFAULT 1;
     END IF;
-END$$;
+END $$;
 
 -- Populate profit and image values for seeded SKUs if null
 UPDATE products SET 

@@ -15,6 +15,14 @@ public class GitHubWebhookController {
 
     private static final Logger log = LoggerFactory.getLogger(GitHubWebhookController.class);
 
+    @GetMapping
+    public ResponseEntity<Map<String, String>> healthCheck() {
+        return ResponseEntity.ok(Map.of(
+            "status", "active",
+            "message", "GitHub Webhook endpoint is ready"
+        ));
+    }
+
     @PostMapping
     public ResponseEntity<Map<String, String>> handleWebhook(
             @RequestHeader(value = "X-GitHub-Event", required = false) String event,
