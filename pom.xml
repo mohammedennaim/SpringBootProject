@@ -37,8 +37,9 @@
 		<maven.compiler.release>17</maven.compiler.release>
 		
 		<!-- SonarQube Properties -->
-		<sonar.projectKey>com.example:digital-logistics</sonar.projectKey>
+		<sonar.projectKey>digital-logistics</sonar.projectKey>
 		<sonar.projectName>Digital Logistics</sonar.projectName>
+		<sonar.java.binaries>${project.build.directory}/classes</sonar.java.binaries>
 		<sonar.coverage.jacoco.xmlReportPaths>${project.build.directory}/site/jacoco/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
 		<sonar.exclusions>**/model/entity/**,**/model/dto/**,**/model/mapper/**,**/model/enums/**,**/config/**,**/LogisticsApiApplication.java</sonar.exclusions>
 		<sonar.coverage.exclusions>**/model/**,**/config/**,**/LogisticsApiApplication.java</sonar.coverage.exclusions>

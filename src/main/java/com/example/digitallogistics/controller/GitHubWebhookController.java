@@ -65,11 +65,15 @@ public class GitHubWebhookController {
             try {
                 log.info("Starting Maven build and SonarQube analysis...");
                 
+                String sonarToken = System.getenv("SONAR_TOKEN");
+                if (sonarToken == null || sonarToken.isEmpty()) {
+                    log.warn("SONAR_TOKEN not set, skipping SonarQube analysis");
+                    return;
+                }
+                
                 ProcessBuilder pb = new ProcessBuilder(
                     "bash", "-c",
-                    "cd /Users/chefmoha/Desktop/digitallogistics/LogisticsFlow-api && " +
-                    "export JAVA_HOME=/Users/chefmoha/Library/Java/JavaVirtualMachines/ms-17.0.16/Contents/Home && " +
-                    "mvn clean test jacoco:report sonar:sonar -Dsonar.host.url=http://localhost:9000 -Dsonar.token=squ_8f26cc6d656a379c8a19bef589fbc99f778a4326"
+                    "mvn clean test jacoco:report sonar:sonar -Dsonar.host.url=http://localhost:9001 -Dsonar.token=" + sonarToken
                 );
                 
                 pb.redirectErrorStream(true);

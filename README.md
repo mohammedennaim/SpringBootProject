@@ -300,7 +300,8 @@ digital-logistics/
 ### Couverture de Code
 - **Controllers**: 13 tests
 - **Services**: 12 tests
-- **Rapport JaCoCo**: `target/site/jacoco/index.html`
+- **Rapport JaCoCo HTML**: `target/site/jacoco/index.html`
+- **Rapport JaCoCo XML** (pour SonarQube): `target/site/jacoco/jacoco.xml`
 
 ---
 
@@ -320,6 +321,59 @@ Le projet inclut un `Jenkinsfile` avec:
 docker-compose up -d jenkins
 # Accès: http://localhost:8089
 ```
+
+### SonarQube - Analyse de Qualité du Code
+
+#### Démarrer SonarQube
+```bash
+# Démarrer le service
+docker-compose up -d sonar
+
+# Attendre que SonarQube soit prêt (90 secondes)
+docker-compose logs -f sonar
+
+# Accès: http://localhost:9001
+# Login par défaut: admin / admin
+```
+
+#### Lancer l'Analyse
+
+**Option 1: Script automatique (Recommandé)**
+```bash
+# Windows
+run-sonar.bat [SONAR_TOKEN]
+
+# Linux/Mac
+chmod +x run-sonar.sh
+./run-sonar.sh [SONAR_TOKEN]
+```
+
+**Option 2: Commande Maven**
+```bash
+# Avec login/password (première fois)
+./mvnw clean verify sonar:sonar \
+  -Dsonar.host.url=http://localhost:9001 \
+  -Dsonar.login=admin \
+  -Dsonar.password=admin
+
+# Avec token (recommandé pour CI/CD)
+./mvnw clean verify sonar:sonar \
+  -Dsonar.host.url=http://localhost:9001 \
+  -Dsonar.login=YOUR_TOKEN
+```
+
+#### Générer un Token SonarQube
+1. Connectez-vous à http://localhost:9001
+2. Allez dans **My Account** → **Security**
+3. Générez un nouveau token
+4. Utilisez-le dans vos commandes Maven
+
+#### Résultats de l'Analyse
+Après l'analyse, consultez:
+- **Dashboard**: http://localhost:9001/dashboard?id=digital-logistics
+- **Bugs & Vulnerabilités**: Onglet "Issues"
+- **Code Coverage**: Onglet "Coverage"
+- **Code Smells**: Onglet "Maintainability"
 
 ---
 

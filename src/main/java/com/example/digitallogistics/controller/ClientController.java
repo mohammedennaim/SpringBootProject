@@ -7,7 +7,7 @@ import com.example.digitallogistics.model.mapper.ClientMapper;
 import com.example.digitallogistics.service.ClientService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -21,13 +21,11 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/api/clients")
 @Tag(name = "Clients", description = "API de gestion des clients")
+@RequiredArgsConstructor
 public class ClientController {
 
-    @Autowired
-    private ClientService clientService;
-
-    @Autowired
-    private ClientMapper clientMapper;
+    private final ClientService clientService;
+    private final ClientMapper clientMapper;
 
     @GetMapping
     @Operation(summary = "Obtenir la liste de tous les clients")
