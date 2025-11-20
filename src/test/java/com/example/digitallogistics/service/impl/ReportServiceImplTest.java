@@ -35,7 +35,7 @@ class ReportServiceImplTest {
         assertEquals(45L, report.getShippedOrders());
         assertEquals(40L, report.getDeliveredOrders());
         assertEquals(10L, report.getCancelledOrders());
-        assertEquals(new BigDecimal("125000.00"), report.getTotalRevenue());
+        assertEquals(0, new BigDecimal("125000.00").compareTo(report.getTotalRevenue()));
         assertEquals(fromDate, report.getFromDate());
         assertEquals(toDate, report.getToDate());
         assertTrue(report.getDeliveryRate() > 0);
@@ -71,9 +71,9 @@ class ReportServiceImplTest {
         assertEquals(15L, report.getOutOfStockProducts());
         assertEquals(35L, report.getLowStockProducts());
         assertEquals(25L, report.getOverstockedProducts());
-        assertEquals(new BigDecimal("890000.00"), report.getTotalInventoryValue());
-        assertEquals(new BigDecimal("45000.00"), report.getLowStockValue());
-        assertEquals(new BigDecimal("125000.00"), report.getOverstockValue());
+        assertEquals(0, new BigDecimal("890000.00").compareTo(report.getTotalInventoryValue()));
+        assertEquals(0, new BigDecimal("45000.00").compareTo(report.getLowStockValue()));
+        assertEquals(0, new BigDecimal("125000.00").compareTo(report.getOverstockValue()));
         assertEquals(4.2, report.getStockTurnoverRate());
         assertEquals(6.0, report.getStockoutRate());
         assertEquals(94.0, report.getFillRate());

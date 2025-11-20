@@ -9,7 +9,7 @@ import com.example.digitallogistics.service.ManagerService;
 import com.example.digitallogistics.service.impl.ManagerServiceImpl;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -24,13 +24,11 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/api/managers")
 @Tag(name = "Managers", description = "API de gestion des managers (accessible uniquement par les admins)")
+@RequiredArgsConstructor
 public class ManagerController {
 
-    @Autowired
-    private ManagerService managerService;
-
-    @Autowired
-    private ManagerMapper managerMapper;
+    private final ManagerService managerService;
+    private final ManagerMapper managerMapper;
 
     @GetMapping
     @Operation(summary = "Obtenir la liste de tous les managers")

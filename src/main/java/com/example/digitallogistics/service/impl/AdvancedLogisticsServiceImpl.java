@@ -139,9 +139,9 @@ public class AdvancedLogisticsServiceImpl implements AdvancedLogisticsService {
 
     @Override
     public LocalDate calculateShipmentDate(LocalDate orderDate) {
-        LocalDateTime orderDateTime = LocalDateTime.of(orderDate, LocalTime.now());
+        LocalTime currentTime = LocalTime.now();
         
-        if (orderDateTime.getHour() >= cutoffHour) {
+        if (currentTime.getHour() >= cutoffHour) {
             // Commande après cut-off, planifier pour le jour ouvré suivant
             LocalDate nextDay = orderDate.plusDays(1);
             // Éviter les week-ends (simple implémentation)

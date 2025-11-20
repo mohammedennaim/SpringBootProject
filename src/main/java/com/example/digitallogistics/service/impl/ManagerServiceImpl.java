@@ -6,7 +6,7 @@ import com.example.digitallogistics.model.enums.Role;
 import com.example.digitallogistics.repository.ManagerRepository;
 import com.example.digitallogistics.repository.WarehouseRepository;
 import com.example.digitallogistics.service.ManagerService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,16 +17,12 @@ import java.util.UUID;
 
 @Service
 @Transactional
+@RequiredArgsConstructor
 public class ManagerServiceImpl implements ManagerService {
 
-    @Autowired
-    private ManagerRepository managerRepository;
-
-    @Autowired
-    private WarehouseRepository warehouseRepository;
-
-    @Autowired
-    private PasswordEncoder passwordEncoder;
+    private final ManagerRepository managerRepository;
+    private final WarehouseRepository warehouseRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Override
     public List<Manager> findAll() {

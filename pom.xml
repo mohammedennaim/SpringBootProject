@@ -152,7 +152,6 @@
 			<scope>test</scope>
 		</dependency>
 
-		<!-- Hibernate core is managed by Spring Boot starter parent; do not override to avoid version mismatches -->
 
 
 	</dependencies>

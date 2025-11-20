@@ -41,9 +41,9 @@ public class ReportServiceImpl implements ReportService {
                 report.setBackorderRate(0.0);
                 report.setCancellationRate(0.0);
             }
-            report.setTotalRevenue(new BigDecimal("125000.00"));
-            report.setAverageOrderValue(report.getTotalRevenue().divide(new BigDecimal(total), 2, RoundingMode.HALF_UP));
-            report.setPendingRevenue(new BigDecimal("18500.00"));
+            report.setTotalRevenue(BigDecimal.valueOf(125000.00).setScale(2, RoundingMode.HALF_UP));
+            report.setAverageOrderValue(report.getTotalRevenue().divide(BigDecimal.valueOf(total), 2, RoundingMode.HALF_UP));
+            report.setPendingRevenue(BigDecimal.valueOf(18500.00).setScale(2, RoundingMode.HALF_UP));
             report.setAverageProcessingTimeHours(24.5);
             report.setAverageShippingTimeHours(48.2);
             report.setFromDate(startDate);
@@ -67,42 +67,42 @@ public class ReportServiceImpl implements ReportService {
             report.setOutOfStockProducts(15L);
             report.setLowStockProducts(35L);
             report.setOverstockedProducts(25L);
-            report.setTotalInventoryValue(new BigDecimal("890000.00"));
-            report.setLowStockValue(new BigDecimal("45000.00"));
-            report.setOverstockValue(new BigDecimal("125000.00"));
+            report.setTotalInventoryValue(BigDecimal.valueOf(890000.00).setScale(2, RoundingMode.HALF_UP));
+            report.setLowStockValue(BigDecimal.valueOf(45000.00).setScale(2, RoundingMode.HALF_UP));
+            report.setOverstockValue(BigDecimal.valueOf(125000.00).setScale(2, RoundingMode.HALF_UP));
             report.setStockTurnoverRate(4.2);
             report.setStockoutRate(6.0);
             report.setFillRate(94.0);
 
             List<InventoryReportDto.ProductStockSummary> topSelling = Arrays.asList(
                 new InventoryReportDto.ProductStockSummary("PROD-001", "Produit A", 150, 140, 
-                    new BigDecimal("25.00"), new BigDecimal("3750.00"), 8.5),
+                    BigDecimal.valueOf(25.00), BigDecimal.valueOf(3750.00), 8.5),
                 new InventoryReportDto.ProductStockSummary("PROD-002", "Produit B", 200, 180, 
-                    new BigDecimal("45.00"), new BigDecimal("9000.00"), 6.2),
+                    BigDecimal.valueOf(45.00), BigDecimal.valueOf(9000.00), 6.2),
                 new InventoryReportDto.ProductStockSummary("PROD-003", "Produit C", 75, 70, 
-                    new BigDecimal("120.00"), new BigDecimal("9000.00"), 5.8)
+                    BigDecimal.valueOf(120.00), BigDecimal.valueOf(9000.00), 5.8)
             );
             report.setTopSellingProducts(topSelling);
             
             List<InventoryReportDto.ProductStockSummary> criticalStock = Arrays.asList(
                 new InventoryReportDto.ProductStockSummary("PROD-010", "Produit J", 5, 5, 
-                    new BigDecimal("85.00"), new BigDecimal("425.00"), 12.0),
+                    BigDecimal.valueOf(85.00), BigDecimal.valueOf(425.00), 12.0),
                 new InventoryReportDto.ProductStockSummary("PROD-015", "Produit O", 3, 2, 
-                    new BigDecimal("150.00"), new BigDecimal("450.00"), 15.5)
+                    BigDecimal.valueOf(150.00), BigDecimal.valueOf(450.00), 15.5)
             );
             report.setCriticalStockProducts(criticalStock);
             
             List<InventoryReportDto.ProductStockSummary> deadStock = List.of(
                     new InventoryReportDto.ProductStockSummary("PROD-050", "Produit obsolète", 100, 100,
-                            new BigDecimal("10.00"), new BigDecimal("1000.00"), 0.1)
+                            BigDecimal.valueOf(10.00), BigDecimal.valueOf(1000.00), 0.1)
             );
             report.setDeadStockProducts(deadStock);
             
             List<InventoryReportDto.WarehouseStockSummary> warehouseSummaries = Arrays.asList(
                 new InventoryReportDto.WarehouseStockSummary("Entrepôt Principal", 180, 15000, 13500, 
-                    new BigDecimal("650000.00"), 8),
+                    BigDecimal.valueOf(650000.00), 8),
                 new InventoryReportDto.WarehouseStockSummary("Entrepôt Secondaire", 120, 8000, 7200, 
-                    new BigDecimal("240000.00"), 7)
+                    BigDecimal.valueOf(240000.00), 7)
             );
             report.setWarehouseStockSummaries(warehouseSummaries);
             

@@ -88,6 +88,9 @@ public class GitHubWebhookController {
                 int exitCode = process.waitFor();
                 log.info("Build finished with exit code: {}", exitCode);
                 
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                log.error("Build interrupted: {}", e.getMessage());
             } catch (Exception e) {
                 log.error("Build failed: {}", e.getMessage(), e);
             }
