@@ -35,8 +35,12 @@ public class AdvancedLogisticsController {
     @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER')")
     @Operation(summary = "Vérifier si une commande peut être expédiée")
     public ResponseEntity<Boolean> canShipOrder(@PathVariable UUID orderId) {
-        boolean canShip = advancedLogisticsService.canShipOrder(orderId);
-        return ResponseEntity.ok(canShip);
+        try {
+            boolean canShip = advancedLogisticsService.canShipOrder(orderId);
+            return ResponseEntity.ok(canShip);
+        } catch (Exception e) {
+            return ResponseEntity.ok(false);
+        }
     }
 
     @GetMapping("/shipment-date")

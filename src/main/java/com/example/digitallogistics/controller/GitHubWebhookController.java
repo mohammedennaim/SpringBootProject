@@ -14,12 +14,14 @@ import java.util.Map;
 public class GitHubWebhookController {
 
     private static final Logger log = LoggerFactory.getLogger(GitHubWebhookController.class);
+    private static final String KEY_STATUS = "status";
+    private static final String KEY_MESSAGE = "message";
 
     @GetMapping
     public ResponseEntity<Map<String, String>> healthCheck() {
         return ResponseEntity.ok(Map.of(
-            "status", "active",
-            "message", "GitHub Webhook endpoint is ready"
+            KEY_STATUS, "active",
+            KEY_MESSAGE, "GitHub Webhook endpoint is ready"
         ));
     }
 
@@ -36,8 +38,8 @@ public class GitHubWebhookController {
         if ("ping".equals(event)) {
             log.info("Ping event received - Webhook configured successfully!");
             return ResponseEntity.ok(Map.of(
-                "status", "success",
-                "message", "Pong! Webhook is active"
+                KEY_STATUS, "success",
+                KEY_MESSAGE, "Pong! Webhook is active"
             ));
         }
         
@@ -54,9 +56,9 @@ public class GitHubWebhookController {
         log.info("================================");
         
         return ResponseEntity.ok(Map.of(
-            "status", "success",
+            KEY_STATUS, "success",
             "event", event != null ? event : "unknown",
-            "message", "Webhook processed"
+            KEY_MESSAGE, "Webhook processed"
         ));
     }
     

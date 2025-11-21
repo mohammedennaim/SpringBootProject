@@ -27,6 +27,7 @@ import lombok.RequiredArgsConstructor;
 @Transactional
 public class CarrierServiceImpl implements CarrierService {
 
+    private static final String CARRIER_NOT_FOUND_MSG = "Carrier not found with id: ";
     private final CarrierRepository carrierRepository;
     private final CarrierMapper carrierMapper;
 
@@ -43,7 +44,7 @@ public class CarrierServiceImpl implements CarrierService {
     public CarrierDto getCarrierById(UUID id) {
         @SuppressWarnings("null")
         Carrier carrier = carrierRepository.findById(id)
-            .orElseThrow(() -> new ResourceNotFoundException("Carrier not found with id: " + id));
+            .orElseThrow(() -> new ResourceNotFoundException(CARRIER_NOT_FOUND_MSG + id));
         return carrierMapper.toDto(carrier);
     }
 
@@ -72,7 +73,7 @@ public class CarrierServiceImpl implements CarrierService {
     @SuppressWarnings("null")
     public CarrierDto updateCarrier(UUID id, CarrierUpdateDto updateDto) {
         Carrier carrier = carrierRepository.findById(id)
-            .orElseThrow(() -> new ResourceNotFoundException("Carrier not found with id: " + id));
+            .orElseThrow(() -> new ResourceNotFoundException(CARRIER_NOT_FOUND_MSG + id));
 
         carrierMapper.updateFromDto(updateDto, carrier);
         Carrier updatedCarrier = carrierRepository.save(carrier);
@@ -83,7 +84,7 @@ public class CarrierServiceImpl implements CarrierService {
     @SuppressWarnings("null")
     public CarrierDto updateCarrierStatus(UUID id, CarrierStatusUpdateDto statusUpdate) {
         Carrier carrier = carrierRepository.findById(id)
-            .orElseThrow(() -> new ResourceNotFoundException("Carrier not found with id: " + id));
+            .orElseThrow(() -> new ResourceNotFoundException(CARRIER_NOT_FOUND_MSG + id));
 
         validateStatusTransition(carrier.getStatus(), statusUpdate.getStatus());
         carrier.setStatus(statusUpdate.getStatus());
@@ -126,7 +127,7 @@ public class CarrierServiceImpl implements CarrierService {
     @SuppressWarnings("null")
     public void deleteCarrier(UUID id) {
         Carrier carrier = carrierRepository.findById(id)
-            .orElseThrow(() -> new ResourceNotFoundException("Carrier not found with id: " + id));
+            .orElseThrow(() -> new ResourceNotFoundException(CARRIER_NOT_FOUND_MSG + id));
 
         carrierRepository.delete(carrier);
     }

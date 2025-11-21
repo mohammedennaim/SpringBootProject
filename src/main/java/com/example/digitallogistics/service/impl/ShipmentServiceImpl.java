@@ -30,6 +30,7 @@ import lombok.RequiredArgsConstructor;
 @Transactional
 public class ShipmentServiceImpl implements ShipmentService {
 
+    private static final String SHIPMENT_NOT_FOUND_MSG = "Shipment not found with id: ";
     private final ShipmentRepository shipmentRepository;
     private final WarehouseRepository warehouseRepository;
     private final CarrierRepository carrierRepository;
@@ -48,7 +49,7 @@ public class ShipmentServiceImpl implements ShipmentService {
     public ShipmentDto getShipmentById(UUID id) {
         @SuppressWarnings("null")
         Shipment shipment = shipmentRepository.findById(id)
-            .orElseThrow(() -> new ResourceNotFoundException("Shipment not found with id: " + id));
+            .orElseThrow(() -> new ResourceNotFoundException(SHIPMENT_NOT_FOUND_MSG + id));
         return shipmentMapper.toDto(shipment);
     }
 
@@ -90,7 +91,7 @@ public class ShipmentServiceImpl implements ShipmentService {
     public ShipmentDto updateShipmentStatus(UUID id, ShipmentStatusUpdateDto statusUpdate) {
         @SuppressWarnings("null")
         Shipment shipment = shipmentRepository.findById(id)
-            .orElseThrow(() -> new ResourceNotFoundException("Shipment not found with id: " + id));
+            .orElseThrow(() -> new ResourceNotFoundException(SHIPMENT_NOT_FOUND_MSG + id));
 
         validateStatusTransition(shipment.getStatus(), statusUpdate.getStatus());
         shipment.setStatus(statusUpdate.getStatus());
@@ -148,7 +149,7 @@ public class ShipmentServiceImpl implements ShipmentService {
     public void deleteShipment(UUID id) {
         @SuppressWarnings("null")
         Shipment shipment = shipmentRepository.findById(id)
-            .orElseThrow(() -> new ResourceNotFoundException("Shipment not found with id: " + id));
+            .orElseThrow(() -> new ResourceNotFoundException(SHIPMENT_NOT_FOUND_MSG + id));
 
         if (shipment.getStatus() == ShipmentStatus.DELIVERED) {
             throw new ValidationException("Cannot delete a delivered shipment");
