@@ -100,12 +100,11 @@ class AdvancedLogisticsServiceImplTest {
 
     @Test
     void testCalculateShipmentDate_BeforeCutoff() {
-        // Test avec une date à 10h (avant cut-off de 15h)
-        LocalDate orderDate = LocalDate.now();
-        // Mock l'heure actuelle pour être avant 15h
+        // Test avec une date future (lundi) pour éviter les dépendances à l'heure actuelle
+        LocalDate orderDate = LocalDate.of(2024, 6, 3); // Un lundi
         LocalDate result = advancedLogisticsService.calculateShipmentDate(orderDate);
-        // Le résultat peut être aujourd'hui ou demain selon l'heure actuelle
-        assertTrue(result.equals(orderDate) || result.equals(orderDate.plusDays(1)));
+        // Avant 15h → même jour, Après 15h → jour suivant (mardi)
+        assertTrue(result.equals(orderDate) || result.equals(LocalDate.of(2024, 6, 4)));
     }
 
     @Test
