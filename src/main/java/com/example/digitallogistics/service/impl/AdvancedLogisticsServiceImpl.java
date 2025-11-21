@@ -58,19 +58,16 @@ public class AdvancedLogisticsServiceImpl implements AdvancedLogisticsService {
     private boolean reserveStockForLine(SalesOrderLine line, SalesOrder salesOrder) {
         List<Inventory> inventories = inventoryRepository.findByProductIdOrderByWarehousePriority(line.getProduct().getId());
         int remainingQty = line.getQuantity();
-        boolean fullyReserved = false;
         
         for (Inventory inventory : inventories) {
-            if (remainingQty <= 0) {
-                fullyReserved = true;
-                break;
-            }
+            if (remainingQty <= 0) break;
             
             int availableQty = inventory.getQtyOnHand() - inventory.getQtyReserved();
             if (availableQty <= 0) continue;
             
             int toReserve = Math.min(availableQty, remainingQty);
             
+            // Créer la réservation
             Reservation reservation = Reservation.builder()
                 .salesOrder(salesOrder)
                 .inventory(inventory)
@@ -81,18 +78,20 @@ public class AdvancedLogisticsServiceImpl implements AdvancedLogisticsService {
                 .build();
             
             reservationRepository.save(reservation);
+            
+            // Mettre à jour l'inventaire
             inventory.setQtyReserved(inventory.getQtyReserved() + toReserve);
             inventoryRepository.save(inventory);
+            
             remainingQty -= toReserve;
         }
         
+        // Créer un back order pour la quantité non disponible
         if (remainingQty > 0) {
             createBackOrder(salesOrder, line.getProduct(), remainingQty);
-        } else {
-            fullyReserved = true;
         }
         
-        return fullyReserved;
+        return true;
     }
 
     private void createBackOrder(SalesOrder salesOrder, Product product, int quantity) {

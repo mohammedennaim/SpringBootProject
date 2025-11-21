@@ -20,7 +20,6 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class ManagerServiceImpl implements ManagerService {
 
-    private static final String MANAGER_NOT_FOUND = "Manager non trouvé";
     private final ManagerRepository managerRepository;
     private final WarehouseRepository warehouseRepository;
     private final PasswordEncoder passwordEncoder;
@@ -85,7 +84,7 @@ public class ManagerServiceImpl implements ManagerService {
     @Transactional
     public void assignWarehouse(UUID managerId, UUID warehouseId) {
         Manager manager = managerRepository.findById(managerId)
-            .orElseThrow(() -> new RuntimeException(MANAGER_NOT_FOUND));
+            .orElseThrow(() -> new RuntimeException("Manager non trouvé"));
         Warehouse warehouse = warehouseRepository.findById(warehouseId)
             .orElseThrow(() -> new RuntimeException("Entrepôt non trouvé"));
         manager.addWarehouse(warehouse);
@@ -96,7 +95,7 @@ public class ManagerServiceImpl implements ManagerService {
     @Transactional
     public void removeWarehouse(UUID managerId, UUID warehouseId) {
         Manager manager = managerRepository.findById(managerId)
-            .orElseThrow(() -> new RuntimeException(MANAGER_NOT_FOUND));
+            .orElseThrow(() -> new RuntimeException("Manager non trouvé"));
         Warehouse warehouse = warehouseRepository.findById(warehouseId)
             .orElseThrow(() -> new RuntimeException("Entrepôt non trouvé"));
         
@@ -108,7 +107,7 @@ public class ManagerServiceImpl implements ManagerService {
     @Transactional
     public void assignWarehouses(UUID managerId, List<UUID> warehouseIds) {
         Manager manager = managerRepository.findById(managerId)
-            .orElseThrow(() -> new RuntimeException(MANAGER_NOT_FOUND));
+            .orElseThrow(() -> new RuntimeException("Manager non trouvé"));
         
         for (UUID warehouseId : warehouseIds) {
             Warehouse warehouse = warehouseRepository.findById(warehouseId)

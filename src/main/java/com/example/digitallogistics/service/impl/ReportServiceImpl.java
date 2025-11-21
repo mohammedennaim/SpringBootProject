@@ -15,8 +15,6 @@ import java.util.*;
 @RequiredArgsConstructor
 public class ReportServiceImpl implements ReportService {
 
-    private static final String COUNTRY_MOROCCO = "Maroc";
-
     
     @Override
     public OrderReportDto getOrderReport(LocalDate fromDate, LocalDate toDate) {
@@ -161,9 +159,9 @@ public class ReportServiceImpl implements ReportService {
             report.setOnTimeRatePerPeriod(onTimeRatePerPeriod);
             
             List<ShipmentReportDto.DestinationSummary> topDestinations = Arrays.asList(
-                new ShipmentReportDto.DestinationSummary("Casablanca", COUNTRY_MOROCCO, 35L, 24.5, 92.0),
-                new ShipmentReportDto.DestinationSummary("Rabat", COUNTRY_MOROCCO, 25L, 36.2, 88.0),
-                new ShipmentReportDto.DestinationSummary("Marrakech", COUNTRY_MOROCCO, 20L, 48.1, 85.0)
+                new ShipmentReportDto.DestinationSummary("Casablanca", "Maroc", 35L, 24.5, 92.0),
+                new ShipmentReportDto.DestinationSummary("Rabat", "Maroc", 25L, 36.2, 88.0),
+                new ShipmentReportDto.DestinationSummary("Marrakech", "Maroc", 20L, 48.1, 85.0)
             );
             report.setTopDestinations(topDestinations);
             report.setFromDate(startDate);

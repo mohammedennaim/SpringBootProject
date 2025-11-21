@@ -17,7 +17,6 @@ import com.example.digitallogistics.service.InventoryService;
 @Service
 public class InventoryServiceImpl implements InventoryService {
 
-    private static final String PRODUCT_NOT_FOUND = "Product not found";
     private final InventoryRepository inventoryRepository;
     private final WarehouseRepository warehouseRepository;
     private final ProductRepository productRepository;
@@ -124,123 +123,111 @@ public class InventoryServiceImpl implements InventoryService {
         }
 
         int delta = targetTotal - currentTotal;
+
         if (delta == 0) return;
 
         if (delta > 0) {
-            increaseInventory(productId, inventories, delta);
+            java.util.List<Warehouse> mains = warehouseRepository.findByCode("MAIN");
+            Warehouse main = mains.isEmpty() ? null : mains.get(0);
+
+            Inventory targetInv = null;
+            if (main != null) {
+                for (Inventory inv : inventories) {
+                    if (inv.getWarehouse() != null && main.getId().equals(inv.getWarehouse().getId())) {
+                        targetInv = inv; break;
+                    }
+                }
+            }
+
+            if (targetInv != null) {
+                int current = targetInv.getQtyOnHand() != null ? targetInv.getQtyOnHand() : 0;
+                targetInv.setQtyOnHand(current + delta);
+                inventoryRepository.save(targetInv);
+            } else if (main != null) {
+                java.util.Optional<Product> p = productRepository.findById(productId);
+                if (p.isPresent()) {
+                    Inventory newInv = Inventory.builder()
+                        .warehouse(main)
+                        .product(p.get())
+                        .qtyOnHand(Math.max(0, delta))
+                        .qtyReserved(0)
+                        .build();
+                    inventoryRepository.save(newInv);
+                } else {
+                    throw new RuntimeException("Product not found");
+                }
+            } else {
+                if (!inventories.isEmpty()) {
+                    Inventory inv0 = inventories.get(0);
+                    int cur = inv0.getQtyOnHand() != null ? inv0.getQtyOnHand() : 0;
+                    inv0.setQtyOnHand(cur + delta);
+                    inventoryRepository.save(inv0);
+                } else {
+                    throw new RuntimeException("No warehouse available to add inventory");
+                }
+            }
         } else {
-            decreaseInventory(inventories, -delta);
-        }
-    }
+            int toRemove = -delta;
+            inventories.sort((a,b) -> Integer.compare(
+                Math.max(0, (b.getQtyOnHand() != null ? b.getQtyOnHand() : 0) - (b.getQtyReserved() != null ? b.getQtyReserved() : 0)),
+                Math.max(0, (a.getQtyOnHand() != null ? a.getQtyOnHand() : 0) - (a.getQtyReserved() != null ? a.getQtyReserved() : 0))
+            ));
 
-    private void increaseInventory(UUID productId, List<Inventory> inventories, int delta) {
-        Warehouse main = warehouseRepository.findByCode("MAIN").stream().findFirst().orElse(null);
-        Inventory targetInv = findInventoryInWarehouse(inventories, main);
+            for (Inventory inv : inventories) {
+                int onHand = inv.getQtyOnHand() != null ? inv.getQtyOnHand() : 0;
+                int reserved = inv.getQtyReserved() != null ? inv.getQtyReserved() : 0;
+                int available = Math.max(0, onHand - reserved);
+                if (available <= 0) continue;
+                int take = Math.min(available, toRemove);
+                inv.setQtyOnHand(onHand - take);
+                inventoryRepository.save(inv);
+                toRemove -= take;
+                if (toRemove <= 0) break;
+            }
 
-        if (targetInv != null) {
-            updateInventoryQuantity(targetInv, delta);
-        } else if (main != null) {
-            createNewInventory(productId, main, delta);
-        } else {
-            addToFirstInventory(inventories, delta);
-        }
-    }
-
-    private Inventory findInventoryInWarehouse(List<Inventory> inventories, Warehouse warehouse) {
-        if (warehouse == null) return null;
-        return inventories.stream()
-            .filter(inv -> inv.getWarehouse() != null && warehouse.getId().equals(inv.getWarehouse().getId()))
-            .findFirst()
-            .orElse(null);
-    }
-
-    private void updateInventoryQuantity(Inventory inventory, int delta) {
-        int current = inventory.getQtyOnHand() != null ? inventory.getQtyOnHand() : 0;
-        inventory.setQtyOnHand(current + delta);
-        inventoryRepository.save(inventory);
-    }
-
-    private void createNewInventory(UUID productId, Warehouse warehouse, int quantity) {
-        Product product = productRepository.findById(productId)
-            .orElseThrow(() -> new RuntimeException(PRODUCT_NOT_FOUND));
-        Inventory newInv = Inventory.builder()
-            .warehouse(warehouse)
-            .product(product)
-            .qtyOnHand(Math.max(0, quantity))
-            .qtyReserved(0)
-            .build();
-        inventoryRepository.save(newInv);
-    }
-
-    private void addToFirstInventory(List<Inventory> inventories, int delta) {
-        if (inventories.isEmpty()) {
-            throw new RuntimeException("No warehouse available to add inventory");
-        }
-        updateInventoryQuantity(inventories.get(0), delta);
-    }
-
-    private void decreaseInventory(List<Inventory> inventories, int toRemove) {
-        inventories.sort((a, b) -> Integer.compare(getAvailableQty(b), getAvailableQty(a)));
-
-        for (Inventory inv : inventories) {
-            int available = getAvailableQty(inv);
-            if (available <= 0) continue;
-            
-            int take = Math.min(available, toRemove);
-            int onHand = inv.getQtyOnHand() != null ? inv.getQtyOnHand() : 0;
-            inv.setQtyOnHand(onHand - take);
-            inventoryRepository.save(inv);
-            toRemove -= take;
-            if (toRemove <= 0) break;
+            if (toRemove > 0) {
+                throw new RuntimeException("Unable to reduce inventories to requested total; remaining=" + toRemove);
+            }
         }
 
-        if (toRemove > 0) {
-            throw new RuntimeException("Unable to reduce inventories to requested total; remaining=" + toRemove);
-        }
-    }
-
-    private int getAvailableQty(Inventory inv) {
-        int onHand = inv.getQtyOnHand() != null ? inv.getQtyOnHand() : 0;
-        int reserved = inv.getQtyReserved() != null ? inv.getQtyReserved() : 0;
-        return Math.max(0, onHand - reserved);
     }
 
     @SuppressWarnings("null")
     @Override
     public Inventory updateInventory(UUID id, UUID warehouseId, UUID productId, Integer qtyOnHand, Integer qtyReserved) {
-        return inventoryRepository.findById(id)
-            .map(inv -> updateExistingInventory(inv, warehouseId, productId, qtyOnHand, qtyReserved))
-            .orElseGet(() -> createInventory(id, warehouseId, productId, qtyOnHand, qtyReserved));
-    }
+        Optional<Inventory> opt = inventoryRepository.findById(id);
+        if (opt.isEmpty()) {
+            Optional<Warehouse> wh = warehouseRepository.findById(warehouseId);
+            Optional<Product> p = productRepository.findById(productId);
+            if (wh.isEmpty()) throw new RuntimeException("Warehouse not found");
+            if (p.isEmpty()) throw new RuntimeException("Product not found");
+            Inventory newInv = Inventory.builder()
+                .id(id)
+                .warehouse(wh.get())
+                .product(p.get())
+                .qtyOnHand(qtyOnHand != null ? qtyOnHand : 0)
+                .qtyReserved(qtyReserved != null ? qtyReserved : 0)
+                .build();
+            return inventoryRepository.save(newInv);
+        }
 
-    private Inventory updateExistingInventory(Inventory inv, UUID warehouseId, UUID productId, Integer qtyOnHand, Integer qtyReserved) {
+        Inventory inv = opt.get();
+
         if (warehouseId != null) {
-            Warehouse wh = warehouseRepository.findById(warehouseId)
-                .orElseThrow(() -> new RuntimeException("Warehouse not found"));
-            inv.setWarehouse(wh);
+            Optional<Warehouse> wh = warehouseRepository.findById(warehouseId);
+            if (wh.isEmpty()) throw new RuntimeException("Warehouse not found");
+            inv.setWarehouse(wh.get());
         }
+
         if (productId != null) {
-            Product p = productRepository.findById(productId)
-                .orElseThrow(() -> new RuntimeException(PRODUCT_NOT_FOUND));
-            inv.setProduct(p);
+            Optional<Product> p = productRepository.findById(productId);
+            if (p.isEmpty()) throw new RuntimeException("Product not found");
+            inv.setProduct(p.get());
         }
+
         if (qtyOnHand != null) inv.setQtyOnHand(qtyOnHand);
         if (qtyReserved != null) inv.setQtyReserved(qtyReserved);
-        return inventoryRepository.save(inv);
-    }
 
-    private Inventory createInventory(UUID id, UUID warehouseId, UUID productId, Integer qtyOnHand, Integer qtyReserved) {
-        Warehouse wh = warehouseRepository.findById(warehouseId)
-            .orElseThrow(() -> new RuntimeException("Warehouse not found"));
-        Product p = productRepository.findById(productId)
-            .orElseThrow(() -> new RuntimeException(PRODUCT_NOT_FOUND));
-        Inventory newInv = Inventory.builder()
-            .id(id)
-            .warehouse(wh)
-            .product(p)
-            .qtyOnHand(qtyOnHand != null ? qtyOnHand : 0)
-            .qtyReserved(qtyReserved != null ? qtyReserved : 0)
-            .build();
-        return inventoryRepository.save(newInv);
+        return inventoryRepository.save(inv);
     }
 }

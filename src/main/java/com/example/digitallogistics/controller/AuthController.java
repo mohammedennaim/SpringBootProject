@@ -40,7 +40,7 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<Object> login(@RequestBody @Valid AuthRequest req) {
+    public ResponseEntity<?> login(@RequestBody @Valid AuthRequest req) {
         try {
             Authentication auth = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(req.getEmail(), req.getPassword())
@@ -60,7 +60,7 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<Map<String, Object>> register(@RequestBody @Valid UserCreateDto createDto) {
+    public ResponseEntity<?> register(@RequestBody @Valid UserCreateDto createDto) {
     Client client = new Client();
     client.setEmail(createDto.getEmail());
     client.setPassword(passwordEncoder.encode(createDto.getPassword()));
