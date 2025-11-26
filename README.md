@@ -118,8 +118,8 @@
 
 ```bash
 # 1. Cloner le projet
-git clone https://github.com/votre-username/digital-logistics.git
-cd digital-logistics
+git clone https://github.com/votre-username/LogisticsFlow-api.git
+cd LogisticsFlow-api
 
 # 2. Copier et configurer .env
 cp .env.example .env
@@ -151,7 +151,7 @@ docker run -d -p 5432:5432 \
 
 # 2. Compiler et lancer
 ./mvnw clean package -DskipTests
-java -jar target/digital-logistics-1.0.0.jar
+java -jar target/LogisticsFlow-api-1.0.0.jar
 ```
 
 ---
@@ -252,8 +252,8 @@ Authorization: Bearer <token>
 
 ### Structure du Projet
 ```
-digital-logistics/
-├── src/main/java/com/example/digitallogistics/
+LogisticsFlow-api/
+├── src/main/java/com/example/logisticsflowapi/
 │   ├── config/              # Configuration (Security, Swagger, CORS)
 │   ├── controller/          # REST Controllers
 │   ├── model/
@@ -370,7 +370,7 @@ chmod +x run-sonar.sh
 
 #### Résultats de l'Analyse
 Après l'analyse, consultez:
-- **Dashboard**: http://localhost:9001/dashboard?id=digital-logistics
+- **Dashboard**: http://localhost:9001/dashboard?id=LogisticsFlow-api
 - **Bugs & Vulnerabilités**: Onglet "Issues"
 - **Code Coverage**: Onglet "Coverage"
 - **Code Smells**: Onglet "Maintainability"
@@ -410,7 +410,7 @@ curl http://localhost:8093/api/health
 ### Logs
 ```bash
 # Voir les logs
-tail -f logs/digital-logistics.log
+tail -f logs/LogisticsFlow-api.log
 
 # Logs Docker
 docker-compose logs -f app
@@ -418,34 +418,16 @@ docker-compose logs -f app
 
 ---
 
-## 🤝 Contribution
-
-1. Fork le projet
-2. Créer une branche (`git checkout -b feature/AmazingFeature`)
-3. Commit (`git commit -m 'Add AmazingFeature'`)
-4. Push (`git push origin feature/AmazingFeature`)
-5. Ouvrir une Pull Request
-
----
-
-## 📝 License
-
-Ce projet est sous licence MIT. Voir [LICENSE](LICENSE) pour plus de détails.
-
----
-
 ## 📞 Contact
 
-**Votre Nom** - [@votre_twitter](https://twitter.com/votre_twitter)
+**Votre Phone** - +212 7-71-23-65-30
 
-Project Link: [https://github.com/votre-username/digital-logistics](https://github.com/votre-username/digital-logistics)
+Project Link: [https://github.com/mohammedennaim/LogisticsFlow-api](https://github.com/mohammedennaim/LogisticsFlow-api)
 
 ---
 
 <div align="center">
-
-**⭐ Si ce projet vous aide, n'hésitez pas à lui donner une étoile !**
-
-Made with ❤️ by [Votre Nom]
+  
+Mohammed ENNAIM
 
 </div>
