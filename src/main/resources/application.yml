@@ -26,6 +26,7 @@ app:
   jwt:
     secret: ${JWT_SECRET:YourVerySecureRandomSecretKeyHereMustBeAtLeast32CharactersLong!@#}
     expiration-ms: ${JWT_EXPIRATION:3600000}
+    refresh-expiration-ms: ${JWT_REFRESH_EXPIRATION:604800000} # 7 jours par défaut
 
 logistics:
   cutoff:

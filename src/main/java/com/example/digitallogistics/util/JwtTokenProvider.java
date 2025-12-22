@@ -100,4 +100,13 @@ public class JwtTokenProvider {
     public String getSubject(String token) {
         return Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).getBody().getSubject();
     }
+
+    /**
+     * Méthode utilitaire pour générer un access token à partir du username (email).
+     * Utilisée notamment lors du rafraîchissement de token.
+     */
+    public String generateTokenFromUsername(String username) {
+        return createToken(username);
+    }
 }
+

@@ -25,7 +25,10 @@ import org.springframework.test.web.servlet.MockMvc;
 import com.example.digitallogistics.model.dto.AuthRequest;
 import com.example.digitallogistics.model.dto.UserCreateDto;
 import com.example.digitallogistics.model.entity.Client;
+import com.example.digitallogistics.model.entity.User;
 import com.example.digitallogistics.model.enums.Role;
+import com.example.digitallogistics.model.entity.RefreshToken;
+import com.example.digitallogistics.service.RefreshTokenService;
 import com.example.digitallogistics.service.UserService;
 import com.example.digitallogistics.util.JwtTokenProvider;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -54,6 +57,9 @@ class AuthControllerTest {
     @MockBean
     private UserService userService;
 
+    @MockBean
+    private RefreshTokenService refreshTokenService;
+
     @Test
     void login_shouldReturnToken() throws Exception {
         AuthRequest request = new AuthRequest();
@@ -66,14 +72,26 @@ class AuthControllerTest {
             List.of(new SimpleGrantedAuthority("ROLE_CLIENT"))
         );
 
+        User user = new Client();
+        user.setId(UUID.randomUUID());
+        user.setEmail("test@example.com");
+        user.setRole(Role.CLIENT);
+        user.setActive(true);
+
+        RefreshToken refreshToken = new RefreshToken();
+        refreshToken.setToken("refresh-token");
+
         when(authenticationManager.authenticate(any())).thenReturn(auth);
         when(tokenProvider.createToken(anyString(), any())).thenReturn("test-token");
+        when(userService.findByEmail(anyString())).thenReturn(java.util.Optional.of(user));
+        when(refreshTokenService.createRefreshToken(any())).thenReturn(refreshToken);
 
         mockMvc.perform(post("/api/auth/login")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.token").value("test-token"));
+                .andExpect(jsonPath("$.accessToken").value("test-token"))
+                .andExpect(jsonPath("$.refreshToken").value("refresh-token"));
     }
 
     @Test
