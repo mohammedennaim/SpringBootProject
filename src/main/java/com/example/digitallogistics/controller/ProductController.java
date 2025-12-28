@@ -1,6 +1,7 @@
 package com.example.digitallogistics.controller;
 
 import java.net.URI;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -9,6 +10,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -29,6 +31,8 @@ import com.example.digitallogistics.model.dto.ProductUpdateDto;
 import com.example.digitallogistics.model.entity.Product;
 import com.example.digitallogistics.model.mapper.ProductMapper;
 import com.example.digitallogistics.service.ProductService;
+import com.example.digitallogistics.service.ProductSearchService;
+import com.example.digitallogistics.model.search.ProductSearchDocument;
 
 import jakarta.validation.Valid;
 
@@ -38,10 +42,13 @@ public class ProductController {
 
     private final ProductService productService;
     private final ProductMapper productMapper;
+    private final ProductSearchService productSearchService;
 
-    public ProductController(ProductService productService, ProductMapper productMapper) {
+    public ProductController(ProductService productService, ProductMapper productMapper,
+                             @Autowired(required = false) ProductSearchService productSearchService) {
         this.productService = productService;
         this.productMapper = productMapper;
+        this.productSearchService = productSearchService;
     }
 
     @SuppressWarnings("null")
@@ -77,6 +84,9 @@ public class ProductController {
     public ResponseEntity<ProductDto> create(@RequestBody @Valid ProductCreateDto createDto) {
         Product product = productMapper.toEntity(createDto);
         Product saved = productService.create(product);
+        if (productSearchService != null) {
+            productSearchService.indexProduct(saved);
+        }
         ProductDto dto = productMapper.toDto(saved);
         return ResponseEntity.created(URI.create("/api/products/" + dto.getId())).body(dto);
     }
@@ -90,6 +100,9 @@ public class ProductController {
         Product product = existing.get();
         productMapper.updateFromDto(updateDto, product);
         Optional<Product> updated = productService.update(id, product);
+        if (productSearchService != null) {
+            updated.ifPresent(productSearchService::indexProduct);
+        }
         return updated.map(p -> ResponseEntity.ok(productMapper.toDto(p))).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
@@ -110,6 +123,9 @@ public class ProductController {
         Optional<Product> opt = productService.findById(id);
         if (opt.isEmpty()) return ResponseEntity.notFound().build();
         productService.deleteById(id);
+        if (productSearchService != null) {
+            productSearchService.deleteProduct(id.toString());
+        }
         return ResponseEntity.noContent().build();
     }
     @PatchMapping("/{sku}/desactivate")
@@ -121,6 +137,19 @@ public class ProductController {
         Product product = optProduct.get();
         if (product.isActive()) product.setActive(false);
         productService.update(product.getId(), product);
+        if (productSearchService != null) {
+            productSearchService.indexProduct(product);
+        }
         return ResponseEntity.ok(productMapper.toDto(product));
+    }
+
+    @GetMapping("/elastic-search")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('WAREHOUSE_MANAGER')")
+    public ResponseEntity<?> searchProductsByName(@RequestParam String q) {
+        if (productSearchService == null) {
+            return ResponseEntity.ok(List.of());
+        }
+        List<ProductSearchDocument> results = productSearchService.searchByName(q);
+        return ResponseEntity.ok(results);
     }
 }

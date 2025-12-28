@@ -3,10 +3,12 @@ package com.example.digitallogistics.security;
 import java.io.IOException;
 
 import org.springframework.http.HttpHeaders;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -35,13 +37,27 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String header = request.getHeader(HttpHeaders.AUTHORIZATION);
         if (header != null && header.startsWith("Bearer ")) {
             String token = header.substring(7);
-            if (tokenProvider.validateToken(token)) {
-                String username = tokenProvider.getSubject(token);
-                UserDetails userDetails = userDetailsService.loadUserByUsername(username);
-                UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-                SecurityContextHolder.getContext().setAuthentication(auth);
+            try {
+                if (tokenProvider.validateToken(token)) {
+                    String username = tokenProvider.getSubject(token);
+                    try {
+                        UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+                        UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+                        SecurityContextHolder.getContext().setAuthentication(auth);
+                    } catch (UsernameNotFoundException ex) {
+                        // Utilisateur non trouvé - ne pas définir d'authentification, Spring Security appellera l'entry point
+                        SecurityContextHolder.clearContext();
+                    }
+                } else {
+                    // Token invalide - ne pas définir d'authentification, Spring Security appellera l'entry point
+                    SecurityContextHolder.clearContext();
+                }
+            } catch (Exception ex) {
+                // Erreur lors de la validation - ne pas définir d'authentification, Spring Security appellera l'entry point
+                SecurityContextHolder.clearContext();
             }
         }
+        // Si pas de header Authorization, on laisse passer pour que AuthenticationEntryPoint soit appelé par Spring Security
 
         filterChain.doFilter(request, response);
     }

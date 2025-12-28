@@ -1,0 +1,38 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:testdb
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: 
+  
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
+        format_sql: false
+  
+  sql:
+    init:
+      mode: never
+  
+  h2:
+    console:
+      enabled: true
+  
+  data:
+    elasticsearch:
+      repositories:
+        enabled: false  # Désactiver Elasticsearch pour les tests d'intégration
+
+app:
+  jwt:
+    secret: TestSecretKeyForIntegrationTestsMustBeAtLeast32CharactersLong!
+    expiration-ms: 900000  # 15 minutes
+    refresh-expiration-ms: 604800000  # 7 jours
+
+server:
+  port: 0  # Port aléatoire pour éviter les conflits
+

@@ -134,8 +134,9 @@ public class AuthController {
         
         // Révoquer le refresh token si fourni
         if (refreshToken != null && !refreshToken.isBlank()) {
+            final String finalRefreshToken = refreshToken; // Variable finale pour la lambda
             refreshTokenService.findByToken(refreshToken)
-                .ifPresent(token -> refreshTokenService.deleteByToken(refreshToken));
+                .ifPresent(token -> refreshTokenService.deleteByToken(finalRefreshToken));
         } else {
             // Si le refresh token n'est pas fourni, essayer de le trouver via l'utilisateur
             try {
@@ -154,26 +155,43 @@ public class AuthController {
     public ResponseEntity<?> refreshtoken(@Valid @RequestBody TokenRefreshRequest request) {
         String requestRefreshToken = request.getRefreshToken();
 
-        return refreshTokenService.findByToken(requestRefreshToken)
-                .map(refreshTokenService::verifyExpiration)
-                .map(RefreshToken::getUser)
-                .map(user -> {
-                    // Rotation du refresh token : créer un nouveau et supprimer l'ancien
-                    RefreshToken newRefreshToken = refreshTokenService.createRefreshToken(user);
-                    refreshTokenService.deleteByToken(requestRefreshToken);
-                    
-                    // Générer un nouvel access token avec les rôles
-                    java.util.List<SimpleGrantedAuthority> authorities = java.util.Collections.singletonList(
-                        new SimpleGrantedAuthority("ROLE_" + user.getRole().name())
-                    );
-                    String accessToken = tokenProvider.createToken(user.getEmail(), authorities);
-                    
-                    TokenRefreshResponse response = TokenRefreshResponse.builder()
-                            .accessToken(accessToken)
-                            .refreshToken(newRefreshToken.getToken())
-                            .build();
-                    return ResponseEntity.ok(response);
-                })
-                .orElseThrow(() -> new RuntimeException("Refresh token is not in database!"));
+        Optional<RefreshToken> refreshTokenOpt = refreshTokenService.findByToken(requestRefreshToken);
+        if (refreshTokenOpt.isEmpty()) {
+            return ResponseEntity.status(org.springframework.http.HttpStatus.UNAUTHORIZED)
+                    .body(Map.of(
+                        "error", "invalid_refresh_token",
+                        "message", "Refresh token is not in database!",
+                        "timestamp", System.currentTimeMillis()
+                    ));
+        }
+
+        try {
+            RefreshToken refreshToken = refreshTokenService.verifyExpiration(refreshTokenOpt.get());
+            User user = refreshToken.getUser();
+            
+            // Rotation du refresh token : créer un nouveau et supprimer l'ancien
+            RefreshToken newRefreshToken = refreshTokenService.createRefreshToken(user);
+            refreshTokenService.deleteByToken(requestRefreshToken);
+            
+            // Générer un nouvel access token avec les rôles
+            java.util.List<SimpleGrantedAuthority> authorities = java.util.Collections.singletonList(
+                new SimpleGrantedAuthority("ROLE_" + user.getRole().name())
+            );
+            String accessToken = tokenProvider.createToken(user.getEmail(), authorities);
+            
+            TokenRefreshResponse response = TokenRefreshResponse.builder()
+                    .accessToken(accessToken)
+                    .refreshToken(newRefreshToken.getToken())
+                    .build();
+            return ResponseEntity.ok(response);
+        } catch (RuntimeException ex) {
+            // Token expiré
+            return ResponseEntity.status(org.springframework.http.HttpStatus.UNAUTHORIZED)
+                    .body(Map.of(
+                        "error", "expired_refresh_token",
+                        "message", ex.getMessage(),
+                        "timestamp", System.currentTimeMillis()
+                    ));
+        }
     }
 }

@@ -24,6 +24,15 @@ import com.example.digitallogistics.model.dto.ShipmentDto;
 import com.example.digitallogistics.model.dto.ShipmentStatusUpdateDto;
 import com.example.digitallogistics.model.enums.ShipmentStatus;
 import com.example.digitallogistics.service.ShipmentService;
+import com.example.digitallogistics.service.SalesOrderService;
+import com.example.digitallogistics.model.entity.SalesOrder;
+import com.example.digitallogistics.model.entity.Client;
+import com.example.digitallogistics.model.entity.User;
+import com.example.digitallogistics.model.enums.Role;
+import com.example.digitallogistics.repository.UserRepository;
+import com.example.digitallogistics.security.SecurityUtils;
+import org.springframework.security.access.AccessDeniedException;
+import java.util.Optional;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -37,11 +46,33 @@ import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/api/shipments")
-@RequiredArgsConstructor
 @Tag(name = "Shipments", description = "API de gestion des expéditions")
 public class ShipmentController {
 
     private final ShipmentService shipmentService;
+    private final SalesOrderService salesOrderService;
+    private final UserRepository userRepository;
+
+    public ShipmentController(ShipmentService shipmentService, SalesOrderService salesOrderService,
+                              UserRepository userRepository) {
+        this.shipmentService = shipmentService;
+        this.salesOrderService = salesOrderService;
+        this.userRepository = userRepository;
+    }
+
+    /**
+     * Vérifie l'ownership : un client ne peut accéder qu'à ses propres expéditions
+     */
+    private void checkShipmentOwnership(UUID orderId) {
+        Optional<User> currentUser = SecurityUtils.getCurrentUser(userRepository);
+        if (currentUser.isPresent() && currentUser.get().getRole() == Role.CLIENT) {
+            Client client = (Client) currentUser.get();
+            Optional<SalesOrder> order = salesOrderService.findById(orderId);
+            if (order.isEmpty() || !order.get().getClient().getId().equals(client.getId())) {
+                throw new AccessDeniedException("You can only access your own shipments");
+            }
+        }
+    }
 
     @GetMapping
     @SuppressWarnings("null")
@@ -115,6 +146,8 @@ public class ShipmentController {
             @Parameter(description = "ID de l'expédition", required = true)
             @PathVariable UUID id) {
         ShipmentDto shipment = shipmentService.getShipmentById(id);
+        // Vérifier l'ownership pour les clients
+        checkShipmentOwnership(shipment.getOrderId());
         return ResponseEntity.ok(shipment);
     }
 
@@ -153,6 +186,8 @@ public class ShipmentController {
             @Parameter(description = "Numéro de suivi", required = true)
             @PathVariable String trackingNumber) {
         ShipmentDto shipment = shipmentService.getShipmentByTrackingNumber(trackingNumber);
+        // Vérifier l'ownership pour les clients
+        checkShipmentOwnership(shipment.getOrderId());
         return ResponseEntity.ok(shipment);
     }
 
