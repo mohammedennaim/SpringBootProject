@@ -10,10 +10,14 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.security.SignatureException;
+
+import jakarta.servlet.http.HttpServletRequest;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -22,12 +26,22 @@ import java.util.stream.Collectors;
 @ControllerAdvice
 public class GlobalExceptionHandler {
 
+    private String getRequestPath() {
+        ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+        if (attributes != null) {
+            HttpServletRequest request = attributes.getRequest();
+            return request.getRequestURI();
+        }
+        return "unknown";
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ResponseEntity<Map<String, Object>> handleValidation(MethodArgumentNotValidException ex) {
         Map<String, Object> body = new HashMap<>();
         body.put("error", "validation_failed");
         body.put("timestamp", System.currentTimeMillis());
+        body.put("path", getRequestPath());
         
         Map<String, String> errors = ex.getBindingResult()
             .getFieldErrors()
@@ -49,6 +63,7 @@ public class GlobalExceptionHandler {
         body.put("error", "resource_not_found");
         body.put("message", ex.getMessage());
         body.put("timestamp", System.currentTimeMillis());
+        body.put("path", getRequestPath());
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(body);
     }
 
@@ -59,6 +74,7 @@ public class GlobalExceptionHandler {
         body.put("error", "validation_error");
         body.put("message", ex.getMessage());
         body.put("timestamp", System.currentTimeMillis());
+        body.put("path", getRequestPath());
         return ResponseEntity.badRequest().body(body);
     }
 
@@ -79,6 +95,7 @@ public class GlobalExceptionHandler {
         
         body.put("message", message);
         body.put("timestamp", System.currentTimeMillis());
+        body.put("path", getRequestPath());
         return ResponseEntity.status(HttpStatus.CONFLICT).body(body);
     }
 
@@ -89,6 +106,7 @@ public class GlobalExceptionHandler {
         body.put("error", "access_denied");
         body.put("message", "You don't have permission to access this resource");
         body.put("timestamp", System.currentTimeMillis());
+        body.put("path", getRequestPath());
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(body);
     }
 
@@ -99,6 +117,7 @@ public class GlobalExceptionHandler {
         body.put("error", "authentication_failed");
         body.put("message", "Invalid credentials or authentication required");
         body.put("timestamp", System.currentTimeMillis());
+        body.put("path", getRequestPath());
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(body);
     }
 
@@ -109,6 +128,7 @@ public class GlobalExceptionHandler {
         body.put("error", "token_expired");
         body.put("message", "Your session has expired. Please login again");
         body.put("timestamp", System.currentTimeMillis());
+        body.put("path", getRequestPath());
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(body);
     }
 
@@ -119,6 +139,7 @@ public class GlobalExceptionHandler {
         body.put("error", "invalid_token");
         body.put("message", "Invalid authentication token");
         body.put("timestamp", System.currentTimeMillis());
+        body.put("path", getRequestPath());
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(body);
     }
 
@@ -128,7 +149,9 @@ public class GlobalExceptionHandler {
         Map<String, Object> body = new HashMap<>();
         body.put("error", "internal_error");
         body.put("message", "An unexpected error occurred. Please try again later");
+        body.put("details", ex.getMessage());
         body.put("timestamp", System.currentTimeMillis());
+        body.put("path", getRequestPath());
 
         ex.printStackTrace();
         

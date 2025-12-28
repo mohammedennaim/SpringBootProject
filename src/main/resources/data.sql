@@ -1,7 +1,7 @@
 -- =================================================
 -- 0. Extension UUID
 -- =================================================
-CREATE EXTENSION IF NOT EXISTS "pgcrypto"; BEGIN;
+CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
 -- =================================================
 -- 1. Base Tables
@@ -74,6 +74,9 @@ CREATE TABLE IF NOT EXISTS warehouses (
     priority INTEGER DEFAULT 1
 );
 
+-- Ensure we don't create duplicate warehouses by making code unique
+CREATE UNIQUE INDEX IF NOT EXISTS idx_warehouses_code ON warehouses(code);
+
 INSERT INTO
     warehouses (code, name, active, priority)
 VALUES (
@@ -99,10 +102,6 @@ ON CONFLICT (code) DO UPDATE SET
   active = EXCLUDED.active,
   priority = EXCLUDED.priority;
 
--- Ensure we don't create duplicate warehouses by making code unique
-CREATE UNIQUE INDEX IF NOT EXISTS idx_warehouses_code ON warehouses(code);
--- Make warehouses insert idempotent via unique index (above)
-
 -- Managers
 CREATE TABLE IF NOT EXISTS managers (
     id UUID PRIMARY KEY,
@@ -126,6 +125,9 @@ CREATE TABLE IF NOT EXISTS suppliers (
     contact_info TEXT
 );
 
+-- Make supplier names unique to allow idempotent inserts
+CREATE UNIQUE INDEX IF NOT EXISTS idx_suppliers_name ON suppliers(name);
+
 INSERT INTO
     suppliers (name, contact_info)
 VALUES (
@@ -142,9 +144,6 @@ VALUES (
     )
 ON CONFLICT (name) DO UPDATE SET
   contact_info = EXCLUDED.contact_info;
-
--- Make supplier names unique to allow idempotent inserts
-CREATE UNIQUE INDEX IF NOT EXISTS idx_suppliers_name ON suppliers(name);
 
 -- Carriers
 CREATE TABLE IF NOT EXISTS carriers (
@@ -163,6 +162,9 @@ CREATE TABLE IF NOT EXISTS carriers (
         )
     )
 );
+
+-- Make carrier code unique so repeated runs don't create duplicates
+CREATE UNIQUE INDEX IF NOT EXISTS idx_carriers_code ON carriers(code);
 
 INSERT INTO
     carriers (
@@ -209,9 +211,6 @@ ON CONFLICT (code) DO UPDATE SET
   shipping_rate = EXCLUDED.shipping_rate,
   status = EXCLUDED.status;
 
--- Make carrier code unique so repeated runs don't create duplicates
-CREATE UNIQUE INDEX IF NOT EXISTS idx_carriers_code ON carriers(code);
-
 -- Products
 CREATE TABLE IF NOT EXISTS products (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid (),
@@ -223,6 +222,9 @@ CREATE TABLE IF NOT EXISTS products (
     active BOOLEAN DEFAULT TRUE,
     image VARCHAR(500)
 );
+
+-- Make product SKU unique to allow idempotent inserts
+CREATE UNIQUE INDEX IF NOT EXISTS idx_products_sku ON products(sku);
 
 INSERT INTO
     products (
@@ -269,37 +271,12 @@ ON CONFLICT (sku) DO UPDATE SET
   active = EXCLUDED.active,
   image = EXCLUDED.image;
 
--- Make product SKU unique to allow idempotent inserts
-CREATE UNIQUE INDEX IF NOT EXISTS idx_products_sku ON products(sku);
-
 -- Migration: ensure product 'profit' and 'image' columns exist for older DBs
-DO $$
-BEGIN
-    IF NOT EXISTS (
-        SELECT 1
-        FROM information_schema.columns
-        WHERE table_name='products' AND column_name='profit'
-    ) THEN
-        ALTER TABLE products ADD COLUMN profit NUMERIC(10,2) DEFAULT 1.00;
-    END IF;
-    
-    IF NOT EXISTS (
-        SELECT 1
-        FROM information_schema.columns
-        WHERE table_name='products' AND column_name='image'
-    ) THEN
-        ALTER TABLE products ADD COLUMN image VARCHAR(500);
-    END IF;
-    
-    -- Ajouter la colonne priority aux warehouses si elle n'existe pas
-    IF NOT EXISTS (
-        SELECT 1
-        FROM information_schema.columns
-        WHERE table_name='warehouses' AND column_name='priority'
-    ) THEN
-        ALTER TABLE warehouses ADD COLUMN priority INTEGER DEFAULT 1;
-    END IF;
-END $$;
+-- Note: These columns are already defined in CREATE TABLE, so this migration is only for legacy databases
+-- Using PostgreSQL 9.6+ IF NOT EXISTS syntax (compatible with Spring SQL init)
+ALTER TABLE products ADD COLUMN IF NOT EXISTS profit NUMERIC(10,2) DEFAULT 1.00;
+ALTER TABLE products ADD COLUMN IF NOT EXISTS image VARCHAR(500);
+ALTER TABLE warehouses ADD COLUMN IF NOT EXISTS priority INTEGER DEFAULT 1;
 
 -- Populate profit and image values for seeded SKUs if null
 UPDATE products SET 
@@ -582,52 +559,23 @@ CREATE INDEX IF NOT EXISTS idx_shipment_slots_warehouse_date ON shipment_slots(w
 -- populate it from `managers.warehouse_id`, add an index and a FK if needed.
 -- It preserves the existing `managers.warehouse_id` column for backward compatibility.
 -- =================================================
-DO $$
-BEGIN
-    -- Add manager_id column to warehouses if it doesn't exist
-    IF NOT EXISTS (
-        SELECT 1 FROM information_schema.columns
-        WHERE table_schema = 'public' AND table_name = 'warehouses' AND column_name = 'manager_id'
-    ) THEN
-        ALTER TABLE warehouses ADD COLUMN manager_id UUID;
-    END IF;
+-- Add manager_id column to warehouses if it doesn't exist (PostgreSQL 9.6+)
+ALTER TABLE warehouses ADD COLUMN IF NOT EXISTS manager_id UUID;
 
-    -- Add priority column to warehouses if it doesn't exist
-    IF NOT EXISTS (
-        SELECT 1 FROM information_schema.columns
-        WHERE table_schema = 'public' AND table_name = 'warehouses' AND column_name = 'priority'
-    ) THEN
-        ALTER TABLE warehouses ADD COLUMN priority INTEGER DEFAULT 1;
-    END IF;
+-- Update priority for existing warehouses
+UPDATE warehouses SET priority = 1 WHERE priority IS NULL;
 
-    -- Update priority for existing warehouses
-    UPDATE warehouses SET priority = 1 WHERE priority IS NULL;
+-- Populate warehouses.manager_id from managers.warehouse_id where applicable
+-- Only update rows where manager_id is currently null to avoid overwriting existing values
+UPDATE warehouses w
+SET manager_id = m.id
+FROM managers m
+WHERE m.warehouse_id IS NOT NULL
+  AND w.id = m.warehouse_id
+  AND (w.manager_id IS NULL OR w.manager_id <> m.id);
 
-    -- Populate warehouses.manager_id from managers.warehouse_id where applicable
-    -- Only update rows where manager_id is currently null to avoid overwriting existing values
-    UPDATE warehouses w
-    SET manager_id = m.id
-    FROM managers m
-    WHERE m.warehouse_id IS NOT NULL
-      AND w.id = m.warehouse_id
-      AND (w.manager_id IS NULL OR w.manager_id <> m.id);
+-- Create an index on warehouses.manager_id for faster joins (idempotent)
+CREATE INDEX IF NOT EXISTS idx_warehouses_manager_id ON warehouses(manager_id);
 
-    -- Create an index on warehouses.manager_id for faster joins (idempotent)
-    PERFORM 1 FROM pg_class WHERE relname = 'idx_warehouses_manager_id';
-    IF NOT FOUND THEN
-        CREATE INDEX idx_warehouses_manager_id ON warehouses(manager_id);
-    END IF;
-
-    -- Add a foreign key constraint if it doesn't already exist
-    IF NOT EXISTS (
-        SELECT 1
-        FROM pg_constraint c
-        JOIN pg_class t ON c.conrelid = t.oid
-        WHERE t.relname = 'warehouses' AND c.conname = 'fk_warehouses_manager'
-    ) THEN
-        ALTER TABLE warehouses ADD CONSTRAINT fk_warehouses_manager FOREIGN KEY (manager_id) REFERENCES managers (id) ON DELETE SET NULL;
-    END IF;
-
-END$$;
-
-COMMIT;
+-- Note: Foreign key constraint fk_warehouses_manager should be managed by JPA/Hibernate
+-- or added manually if needed. Skipping here to avoid DO $$ blocks incompatible with Spring SQL init.

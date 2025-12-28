@@ -57,12 +57,49 @@ services:
     volumes:
       - pgadmin_data:/var/lib/pgadmin
 
-  app:
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.15.0
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m
+    ports:
+      - "9200:9200"
+    volumes:
+      - es_data:/usr/share/elasticsearch/data
+    networks:
+      - logistics-net
+    restart: unless-stopped
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.15.0
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+      - xpack.security.enabled=false
+      - xpack.monitoring.ui.container.elasticsearch.enabled=true
+    ports:
+      - "5601:5601"
+    depends_on:
+      elasticsearch:
+        condition: service_started
+    volumes:
+      - kibana_data:/usr/share/kibana/data
+    networks:
+      - logistics-net
+    restart: unless-stopped
+
+  # Service de production (JAR pré-compilé)
+  app-dev:
     build:
       context: .
+    working_dir: /app
+    volumes:
+      - .:/app
     depends_on:
       postgres:
         condition: service_healthy
+      elasticsearch:
+        condition: service_started
     environment:
       SERVER_PORT: ${SERVER_PORT}
       SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL}
@@ -71,6 +108,9 @@ services:
       SPRING_JPA_HIBERNATE_DDL_AUTO: ${SPRING_JPA_HIBERNATE_DDL_AUTO}
       SPRING_JPA_SHOW_SQL: ${SPRING_JPA_SHOW_SQL}
       SPRING_JPA_DIALECT: ${SPRING_JPA_DIALECT}
+      ELASTICSEARCH_HOST: elasticsearch:9200
+      SPRING_DEVTOOLS_RESTART_ENABLED: "true"
+    command: ["./mvnw", "spring-boot:run"]
     ports:
       - "${APP_HOST_PORT}:${SERVER_PORT}"
     networks:
@@ -98,6 +138,8 @@ volumes:
   sonar_extensions:
   sonar_logs:
   jenkins_home:
+  es_data:
+  kibana_data:
 
 networks:
   logistics-net:

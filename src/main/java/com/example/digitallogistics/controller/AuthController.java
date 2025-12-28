@@ -9,6 +9,7 @@ import java.util.Optional;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import com.example.digitallogistics.service.UserService;
 import com.example.digitallogistics.service.RefreshTokenService;
@@ -111,19 +112,41 @@ public class AuthController {
     @PostMapping("/logout")
     public ResponseEntity<Void> logout(HttpServletRequest request, @RequestBody(required = false) Map<String, String> body) {
         String header = request.getHeader(HttpHeaders.AUTHORIZATION);
-        String token = null;
+        String accessToken = null;
+        String refreshToken = null;
+        
         if (header != null && header.startsWith("Bearer ")) {
-            token = header.substring(7);
+            accessToken = header.substring(7);
         }
-        if (token == null && body != null) {
-            token = body.get("token");
+        if (body != null) {
+            if (accessToken == null) {
+                accessToken = body.get("token");
+            }
+            refreshToken = body.get("refreshToken");
         }
 
-        if (token == null || token.isBlank()) {
+        if (accessToken == null || accessToken.isBlank()) {
             return ResponseEntity.badRequest().build();
         }
 
-        tokenProvider.revokeToken(token);
+        // Révoquer l'access token
+        tokenProvider.revokeToken(accessToken);
+        
+        // Révoquer le refresh token si fourni
+        if (refreshToken != null && !refreshToken.isBlank()) {
+            refreshTokenService.findByToken(refreshToken)
+                .ifPresent(token -> refreshTokenService.deleteByToken(refreshToken));
+        } else {
+            // Si le refresh token n'est pas fourni, essayer de le trouver via l'utilisateur
+            try {
+                String email = tokenProvider.getSubject(accessToken);
+                userService.findByEmail(email)
+                    .ifPresent(user -> refreshTokenService.deleteByUser(user));
+            } catch (Exception ex) {
+                // Ignorer si le token est invalide ou expiré
+            }
+        }
+        
         return ResponseEntity.noContent().build();
     }
 
@@ -135,10 +158,19 @@ public class AuthController {
                 .map(refreshTokenService::verifyExpiration)
                 .map(RefreshToken::getUser)
                 .map(user -> {
-                    String token = tokenProvider.generateTokenFromUsername(user.getEmail());
+                    // Rotation du refresh token : créer un nouveau et supprimer l'ancien
+                    RefreshToken newRefreshToken = refreshTokenService.createRefreshToken(user);
+                    refreshTokenService.deleteByToken(requestRefreshToken);
+                    
+                    // Générer un nouvel access token avec les rôles
+                    java.util.List<SimpleGrantedAuthority> authorities = java.util.Collections.singletonList(
+                        new SimpleGrantedAuthority("ROLE_" + user.getRole().name())
+                    );
+                    String accessToken = tokenProvider.createToken(user.getEmail(), authorities);
+                    
                     TokenRefreshResponse response = TokenRefreshResponse.builder()
-                            .accessToken(token)
-                            .refreshToken(requestRefreshToken)
+                            .accessToken(accessToken)
+                            .refreshToken(newRefreshToken.getToken())
                             .build();
                     return ResponseEntity.ok(response);
                 })
