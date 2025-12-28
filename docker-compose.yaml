@@ -63,14 +63,15 @@ services:
     environment:
       - discovery.type=single-node
       - xpack.security.enabled=false
-      - ES_JAVA_OPTS=-Xms512m -Xmx512m
-      - bootstrap.memory_lock=true
+      - ES_JAVA_OPTS=-Xms1g -Xmx1g
+      - bootstrap.memory_lock=false
       - "action.auto_create_index=+*"
       - "cluster.name=docker-cluster"
       - "node.name=es-node-1"
       - "network.host=0.0.0.0"
       - "http.host=0.0.0.0"
       - "transport.host=0.0.0.0"
+      - "ingest.geoip.downloader.enabled=false"
     ulimits:
       memlock:
         soft: -1
@@ -89,9 +90,9 @@ services:
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1"]
       interval: 30s
-      timeout: 10s
-      retries: 5
-      start_period: 90s
+      timeout: 15s
+      retries: 10
+      start_period: 180s
 
   kibana:
     image: docker.elastic.co/kibana/kibana:7.17.15
@@ -123,9 +124,9 @@ services:
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:5601/api/status || exit 1"]
       interval: 30s
-      timeout: 10s
-      retries: 10
-      start_period: 120s
+      timeout: 15s
+      retries: 15
+      start_period: 180s
 
   # Service de production (JAR pré-compilé)
   app-dev:
@@ -164,7 +165,7 @@ services:
     environment:
       JAVA_OPTS: -Djenkins.install.runSetupWizard=false
     volumes:
-     - jenkins_home:/var/jenkins_home
+      - jenkins_home:/var/jenkins_home
       - /var/run/docker.sock:/var/run/docker.sock
     networks:
       - logistics-net
