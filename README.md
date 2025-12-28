@@ -138,6 +138,8 @@ docker-compose ps
 - 🗄️ **pgAdmin**: http://localhost:8081
 - 📊 **SonarQube**: http://localhost:9001
 - 🔧 **Jenkins**: http://localhost:8089
+- 🔍 **Elasticsearch**: http://localhost:9200
+- 📈 **Kibana**: http://localhost:5601 (voir [GUIDE_KIBANA.md](GUIDE_KIBANA.md) pour visualiser les logs)
 
 ### Option 2: Exécution Locale
 
@@ -408,13 +410,35 @@ curl http://localhost:8093/api/health
 ```
 
 ### Logs
+
+#### Logs locaux
 ```bash
-# Voir les logs
-tail -f logs/LogisticsFlow-api.log
+# Voir les logs dans un fichier
+tail -f logs/digital-logistics.log
 
 # Logs Docker
-docker-compose logs -f app
+docker-compose logs -f app-dev
 ```
+
+#### Visualiser les logs dans Kibana
+
+Les logs de l'application sont automatiquement envoyés à Elasticsearch via Logstash et peuvent être visualisés dans Kibana :
+
+1. **Démarrer les services** :
+```bash
+docker-compose up -d elasticsearch logstash kibana
+```
+
+2. **Accéder à Kibana** : http://localhost:5601
+
+3. **Créer un Index Pattern** : `logisticsflow-*` avec le champ `@timestamp`
+
+4. **Visualiser et rechercher les logs** : Consultez [GUIDE_KIBANA.md](GUIDE_KIBANA.md) pour les instructions détaillées
+
+**Recherches courantes dans Kibana** :
+- `log_level: ERROR` - Tous les logs d'erreur
+- `logger: "com.example.digitallogistics.controller.*"` - Logs d'un contrôleur spécifique
+- `message: "exception"` - Logs contenant "exception"
 
 ---
 

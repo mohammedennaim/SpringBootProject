@@ -158,6 +158,13 @@
 			<artifactId>spring-data-elasticsearch</artifactId>
 		</dependency>
 
+		<!-- 📋 Logstash Logback Encoder (pour envoyer les logs à Logstash/Elasticsearch) -->
+		<dependency>
+			<groupId>net.logstash.logback</groupId>
+			<artifactId>logstash-logback-encoder</artifactId>
+			<version>7.4</version>
+		</dependency>
+
 	</dependencies>
 
 	<!-- ================================================== -->

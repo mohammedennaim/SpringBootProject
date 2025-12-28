@@ -63,7 +63,7 @@ services:
     environment:
       - discovery.type=single-node
       - xpack.security.enabled=false
-      - ES_JAVA_OPTS=-Xms1g -Xmx1g
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m
       - bootstrap.memory_lock=false
       - "action.auto_create_index=+*"
       - "cluster.name=docker-cluster"
@@ -94,18 +94,34 @@ services:
       retries: 10
       start_period: 180s
 
+  logstash:
+    image: docker.elastic.co/logstash/logstash:7.17.15
+    container_name: logstash
+    environment:
+      - "LS_JAVA_OPTS=-Xmx512m -Xms512m"
+      - "xpack.monitoring.enabled=false"
+    ports:
+      - "5000:5000"
+      - "9600:9600"
+    volumes:
+      - ./logstash.conf:/usr/share/logstash/pipeline/logstash.conf:ro
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    networks:
+      - logistics-net
+    restart: unless-stopped
+
   kibana:
     image: docker.elastic.co/kibana/kibana:7.17.15
     container_name: kibana
     environment:
       - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
-      - ELASTICSEARCH_USERNAME=
-      - ELASTICSEARCH_PASSWORD=
       - xpack.security.enabled=false
       - xpack.encryptedSavedObjects.encryptionKey=minimal32charencryptionkeyhere!
       - xpack.reporting.encryptionKey=minimal32charreportingkeyhere!!
       - xpack.monitoring.ui.container.elasticsearch.enabled=true
-      - SERVERNAME=kibana
+      - SERVER_NAME=kibana
       - SERVER_HOST=0.0.0.0
       - SERVER_PORT=5601
       - LOGGING_ROOT_LEVEL=info
@@ -128,13 +144,16 @@ services:
       retries: 15
       start_period: 180s
 
-  # Service de production (JAR pré-compilé)
+  # Service de développement
   app-dev:
-    build:
-      context: .
+    image: amazoncorretto:17-alpine
     working_dir: /app
     volumes:
-      - .:/app
+      - ./src:/app/src:rw
+      - ./pom.xml:/app/pom.xml:ro
+      - ./mvnw:/app/mvnw:rw
+      - ./.mvn:/app/.mvn:ro
+      - app_target:/app/target
     depends_on:
       postgres:
         condition: service_healthy
@@ -149,13 +168,15 @@ services:
       SPRING_JPA_SHOW_SQL: ${SPRING_JPA_SHOW_SQL}
       SPRING_JPA_DIALECT: ${SPRING_JPA_DIALECT}
       ELASTICSEARCH_HOST: elasticsearch:9200
-      SPRING_DEVTOOLS_RESTART_ENABLED: "true"
+      LOGSTASH_HOST: logstash
+      LOGSTASH_PORT: 5000
+      SPRING_DEVTOOLS_RESTART_ENABLED: "false"
     command: ["./mvnw", "spring-boot:run"]
     ports:
       - "${APP_HOST_PORT}:${SERVER_PORT}"
     networks:
       - logistics-net
-    restart: unless-stopped
+    restart: on-failure
 
   jenkins:
     image: jenkins/jenkins:lts-jdk17
@@ -180,6 +201,7 @@ volumes:
   jenkins_home:
   es_data:
   kibana_data:
+  app_target:
 
 networks:
   logistics-net:
