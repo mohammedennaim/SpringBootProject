@@ -30,11 +30,15 @@ spring:
       connection-timeout: 5s
       socket-timeout: 3s
 
-app:
-  jwt:
-    secret: ${JWT_SECRET:YourVerySecureRandomSecretKeyHereMustBeAtLeast32CharactersLong!@#}
-    expiration-ms: ${JWT_EXPIRATION:900000} # 15 minutes par défaut (selon cahier des charges)
-    refresh-expiration-ms: ${JWT_REFRESH_EXPIRATION:604800000} # 7 jours par défaut
+# 4. PARTIE SÉCURITÉ KEYCLOAK (Remplace la section app.jwt)
+security:
+  oauth2:
+    resourceserver:
+      jwt:
+        # L'URL d'identification du serveur Keycloak (avec /auth car KC_HTTP_RELATIVE_PATH=/auth)
+        issuer-uri: http://localhost:8080/auth/realms/logistics-realm
+        # L'URL pour récupérer les clés de validation (JWKS)
+        jwk-set-uri: http://localhost:8080/auth/realms/logistics-realm/protocol/openid-connect/certs
 
 logistics:
   cutoff:
