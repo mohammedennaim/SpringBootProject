@@ -30,8 +30,14 @@ import com.example.digitallogistics.util.JwtTokenProvider;
 
 import jakarta.validation.Valid;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+
 @RestController
 @RequestMapping("/api/auth")
+@Tag(name = "Authentication", description = "API d'authentification (login, register, logout, refresh token)")
 public class AuthController {
 
     private final AuthenticationManager authenticationManager;
@@ -51,6 +57,12 @@ public class AuthController {
     }
 
     @PostMapping("/login")
+    @Operation(summary = "Connexion", description = "Authentifie un utilisateur et retourne un access token et un refresh token")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Connexion réussie"),
+        @ApiResponse(responseCode = "401", description = "Identifiants invalides"),
+        @ApiResponse(responseCode = "500", description = "Erreur interne")
+    })
     public ResponseEntity<?> login(@RequestBody @Valid AuthRequest req) {
         try {
             Authentication auth = authenticationManager.authenticate(
@@ -87,6 +99,11 @@ public class AuthController {
     }
 
     @PostMapping("/register")
+    @Operation(summary = "Inscription", description = "Crée un nouveau compte client")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Inscription réussie"),
+        @ApiResponse(responseCode = "400", description = "Données invalides")
+    })
     public ResponseEntity<?> register(@RequestBody @Valid UserCreateDto createDto) {
     Client client = new Client();
     client.setEmail(createDto.getEmail());
@@ -110,6 +127,11 @@ public class AuthController {
     }
 
     @PostMapping("/logout")
+    @Operation(summary = "Déconnexion", description = "Révoque l'access token et le refresh token")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "204", description = "Déconnexion réussie"),
+        @ApiResponse(responseCode = "400", description = "Token manquant")
+    })
     public ResponseEntity<Void> logout(HttpServletRequest request, @RequestBody(required = false) Map<String, String> body) {
         String header = request.getHeader(HttpHeaders.AUTHORIZATION);
         String accessToken = null;
@@ -152,6 +174,11 @@ public class AuthController {
     }
 
     @PostMapping("/refreshtoken")
+    @Operation(summary = "Rafraîchir le token", description = "Génère un nouvel access token et un nouveau refresh token à partir d'un refresh token valide")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Tokens rafraîchis avec succès"),
+        @ApiResponse(responseCode = "401", description = "Refresh token invalide ou expiré")
+    })
     public ResponseEntity<?> refreshtoken(@Valid @RequestBody TokenRefreshRequest request) {
         String requestRefreshToken = request.getRefreshToken();
 

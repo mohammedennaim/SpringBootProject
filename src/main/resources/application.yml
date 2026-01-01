@@ -26,9 +26,9 @@ spring:
   data:
     elasticsearch:
       repositories:
-        enabled: true
-      connection-timeout: 5s
-      socket-timeout: 3s
+        enabled: false  # Temporairement désactivé pour permettre le démarrage de Swagger
+      connection-timeout: 10s
+      socket-timeout: 10s
 
   # 4. PARTIE SÉCURITÉ KEYCLOAK (Remplace la section app.jwt)
   security:
@@ -36,7 +36,8 @@ spring:
       resourceserver:
         jwt:
           # L'URL d'identification du serveur Keycloak (avec /auth car KC_HTTP_RELATIVE_PATH=/auth)
-          issuer-uri: http://localhost:8080/auth/realms/logistics-realm
+          # Utilise KEYCLOAK_URL si défini, sinon localhost pour développement local
+          issuer-uri: ${KEYCLOAK_ISSUER_URI:http://localhost:8080/auth/realms/logistics-realm}
           # L'URL pour récupérer les clés de validation (JWKS) - optionnel si issuer-uri est défini
           # jwk-set-uri: http://localhost:8080/auth/realms/logistics-realm/protocol/openid-connect/certs
 
@@ -72,6 +73,7 @@ springdoc:
       use-pkce-with-authorization-code-grant: true
       scopes: openid,profile,email,roles
       use-basic-authentication-with-access-code-grant: false
+      # Redirect URI utilisé par Swagger UI pour OAuth2
+      redirect-path: /oauth2-redirect.html
   packages-to-scan: com.example.digitallogistics.controller
-  paths-to-exclude: /api/auth/**
 
