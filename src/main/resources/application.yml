@@ -4,9 +4,9 @@ spring:
   
   datasource:
     # Garder le même nom de base que la config Docker / README: digital_logistics
-    url: ${DB_URL:jdbc:postgresql://localhost:5432/digital_logistics}
+    url: ${DB_URL:jdbc:postgresql://localhost:5433/digital_logistics}
     username: ${DB_USERNAME:postgres}
-    password: ${DB_PASSWORD:postgres}
+    password: ${DB_PASSWORD:123456}
     driver-class-name: org.postgresql.Driver
   
   jpa:
@@ -17,28 +17,39 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
+        # Optimisation: ne pas valider le schéma au démarrage (accélère le démarrage)
+        jdbc.time_zone: UTC
+    # Optimisation: ne pas initialiser la base au démarrage si elle existe déjà
+    defer-datasource-initialization: false
   
   sql:
     init:
-      mode: always
+      # Optimisation: ne charger data.sql que si la base est vide
+      mode: never  # Changé de 'always' à 'never' pour éviter de recharger à chaque démarrage
       data-locations: classpath:data.sql
 
   data:
     elasticsearch:
       repositories:
-        enabled: true
-      connection-timeout: 5s
-      socket-timeout: 3s
+        enabled: false  # Temporairement désactivé pour permettre le démarrage de Swagger
+      connection-timeout: 10s
+      socket-timeout: 10s
 
-# 4. PARTIE SÉCURITÉ KEYCLOAK (Remplace la section app.jwt)
-security:
-  oauth2:
-    resourceserver:
-      jwt:
-        # L'URL d'identification du serveur Keycloak (avec /auth car KC_HTTP_RELATIVE_PATH=/auth)
-        issuer-uri: http://localhost:8080/auth/realms/logistics-realm
-        # L'URL pour récupérer les clés de validation (JWKS)
-        jwk-set-uri: http://localhost:8080/auth/realms/logistics-realm/protocol/openid-connect/certs
+  # 4. PARTIE SÉCURITÉ KEYCLOAK (Remplace la section app.jwt)
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          # L'URL d'identification du serveur Keycloak (avec /auth car KC_HTTP_RELATIVE_PATH=/auth)
+          # Utilise KEYCLOAK_URL si défini, sinon localhost pour développement local
+          # Note: Le JwtDecoderConfig utilise keycloak:8080 pour l'accès depuis Docker
+          issuer-uri: ${KEYCLOAK_ISSUER_URI:http://localhost:8080/auth/realms/logistics-realm}
+          # L'URL pour récupérer les clés de validation (JWKS) - géré par JwtDecoderConfig
+          # jwk-set-uri est configuré automatiquement dans JwtDecoderConfig pour utiliser keycloak:8080
+
+keycloak:
+  # Permet de définir un hôte JWKS différent (ex: keycloak:8080 dans Docker). Laisser vide pour utiliser l'issuer.
+  jwks-host: ${KEYCLOAK_JWKS_HOST:}
 
 logistics:
   cutoff:
@@ -51,7 +62,7 @@ logistics:
       capacity: ${LOGISTICS_SHIPMENT_DEFAULT_CAPACITY:100}
 
 server:
-  port: ${SERVER_PORT:8090}
+  port: ${SERVER_PORT:8093}
   error:
     include-message: always
     include-binding-errors: always
@@ -61,9 +72,18 @@ server:
 springdoc:
   api-docs:
     enabled: true
+    path: /v3/api-docs
   swagger-ui:
     enabled: true
     path: /swagger-ui.html
+    # Configuration OAuth2 pour Swagger UI
+    oauth:
+      client-id: logistics-frontend
+      client-secret: ""  # Public client, pas de secret nécessaire
+      use-pkce-with-authorization-code-grant: true  # Recommandé pour les clients publics Keycloak
+      scopes: openid,profile,email,roles
+      use-basic-authentication-with-access-code-grant: false
+      # Redirect URI utilisé par Swagger UI pour OAuth2
+      redirect-path: /swagger-ui/oauth2-redirect.html
   packages-to-scan: com.example.digitallogistics.controller
-  paths-to-exclude: /api/auth/**
 

@@ -13,7 +13,10 @@ import java.time.Duration;
 @Configuration
 @Profile("!test")
 @ConditionalOnProperty(name = "spring.data.elasticsearch.repositories.enabled", havingValue = "true", matchIfMissing = false)
-@EnableElasticsearchRepositories(basePackages = "com.example.digitallogistics.repository")
+@EnableElasticsearchRepositories(
+    basePackages = "com.example.digitallogistics.repository",
+    considerNestedRepositories = false
+)
 public class ElasticsearchConfig extends ElasticsearchConfiguration {
 
     @Value("${ELASTICSEARCH_HOST:localhost:9200}")
@@ -29,8 +32,8 @@ public class ElasticsearchConfig extends ElasticsearchConfiguration {
         
         return ClientConfiguration.builder()
                 .connectedTo(hostname + ":" + port)
-                .withConnectTimeout(Duration.ofSeconds(5))
-                .withSocketTimeout(Duration.ofSeconds(3))
+                .withConnectTimeout(Duration.ofSeconds(10))  // Augmenté à 10 secondes
+                .withSocketTimeout(Duration.ofSeconds(10))   // Augmenté à 10 secondes
                 .build();
     }
 }
