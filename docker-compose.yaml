@@ -75,6 +75,8 @@ services:
       KEYCLOAK_ISSUER_URI: ${KEYCLOAK_ISSUER_URI:-http://localhost:8080/auth/realms/logistics-realm}
       # Mais les clés JWKS sont récupérées depuis keycloak:8080 (réseau Docker)
       KEYCLOAK_JWKS_HOST: ${KEYCLOAK_JWKS_HOST:-keycloak:8080}
+      # URL du serveur pour Swagger (doit correspondre à l'URL publique)
+      SWAGGER_SERVER_URL: ${SWAGGER_SERVER_URL:-http://localhost:8093}
       ELASTICSEARCH_HOST: elasticsearch:9200
       LOGSTASH_HOST: logstash
       LOGSTASH_PORT: 5000

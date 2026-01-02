@@ -24,9 +24,13 @@ public class SwaggerConfig {
         @Value("${spring.security.oauth2.resourceserver.jwt.issuer-uri:http://localhost:8080/auth/realms/logistics-realm}")
         private String issuerUri;
 
+        @Value("${swagger.server.url:http://localhost:8093}")
+        private String swaggerServerUrl;
+
     @Bean
     public OpenAPI customOpenAPI() {
-                String serverUrl = "http://localhost:" + serverPort;
+                // Utiliser l'URL configurée (localhost en dev, IP publique en prod)
+                String serverUrl = swaggerServerUrl;
 
                 // Construit les URLs auth/token à partir de l'issuer configuré pour éviter les divergences
                 String normalizedIssuer = issuerUri.endsWith("/") ? issuerUri.substring(0, issuerUri.length() - 1) : issuerUri;
