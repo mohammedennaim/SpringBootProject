@@ -62,8 +62,10 @@ services:
       SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-postgres}
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-123456}
       DB_PASSWORD: ${POSTGRES_PASSWORD:-123456}
-      KEYCLOAK_ISSUER_URI: http://localhost:8080/auth/realms/logistics-realm
-      KEYCLOAK_JWKS_HOST: keycloak:8080
+      # L'issuer-uri doit correspondre à celui des tokens (localhost:8080)
+      KEYCLOAK_ISSUER_URI: ${KEYCLOAK_ISSUER_URI:-http://localhost:8080/auth/realms/logistics-realm}
+      # Mais les clés JWKS sont récupérées depuis keycloak:8080 (réseau Docker)
+      KEYCLOAK_JWKS_HOST: ${KEYCLOAK_JWKS_HOST:-keycloak:8080}
       ELASTICSEARCH_HOST: elasticsearch:9200
       LOGSTASH_HOST: logstash
       LOGSTASH_PORT: 5000

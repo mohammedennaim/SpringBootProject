@@ -3,13 +3,12 @@ package com.example.digitallogistics.security;
 import java.io.IOException;
 
 import org.springframework.http.HttpHeaders;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.stereotype.Component;
+// @Component - Désactivé car nous utilisons maintenant OAuth2 Resource Server avec Keycloak
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import com.example.digitallogistics.util.JwtTokenProvider;
@@ -19,7 +18,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
-@Component
+// @Component - Désactivé: Ce filtre n'est plus utilisé car nous utilisons OAuth2 Resource Server
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtTokenProvider tokenProvider;
