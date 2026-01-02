@@ -94,7 +94,6 @@ services:
   # ==========================================
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:7.17.15
-    profiles: ["monitoring", "all"]
     container_name: elasticsearch
     environment:
       - discovery.type=single-node
@@ -120,7 +119,6 @@ services:
 
   logstash:
     image: docker.elastic.co/logstash/logstash:7.17.15
-    profiles: ["monitoring", "all"]
     container_name: logstash
     environment:
       - "LS_JAVA_OPTS=-Xmx512m -Xms512m"
@@ -144,7 +142,6 @@ services:
 
   kibana:
     image: docker.elastic.co/kibana/kibana:7.17.15
-    profiles: ["monitoring", "all"]
     container_name: kibana
     environment:
       - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
@@ -164,7 +161,6 @@ services:
   # ==========================================
   sonar:
     image: sonarqube:community
-    profiles: ["cicd", "all"]
     environment:
       SONAR_ES_BOOTSTRAP_CHECKS_DISABLE: "true"
       SONAR_WEB_JAVAOPTS: "-Xmx512m -Xms512m"
@@ -191,7 +187,6 @@ services:
 
   jenkins:
     image: jenkins/jenkins:lts-jdk17
-    profiles: ["cicd", "all"]
     ports:
       - "${JENKINS_PORT}:8080"
       - "50000:50000"
@@ -213,7 +208,6 @@ services:
   # ==========================================
   pgadmin:
     image: dpage/pgadmin4:8.4
-    profiles: ["tools", "all"]
     environment:
       PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
       PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
