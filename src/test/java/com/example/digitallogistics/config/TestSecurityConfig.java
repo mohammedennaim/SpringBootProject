@@ -1,8 +1,9 @@
 package com.example.digitallogistics.config;
 
-import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
+import org.springframework.context.annotation.Profile;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -30,7 +31,8 @@ import java.util.Map;
  * Configuration de sécurité pour les tests d'intégration
  * Cette configuration utilise JWT local au lieu d'OAuth2/Keycloak
  */
-@TestConfiguration
+@Configuration
+@Profile("test")
 @EnableWebSecurity
 @EnableMethodSecurity
 public class TestSecurityConfig {
