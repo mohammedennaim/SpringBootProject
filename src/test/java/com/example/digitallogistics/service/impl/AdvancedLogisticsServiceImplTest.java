@@ -3,7 +3,6 @@ package com.example.digitallogistics.service.impl;
 import com.example.digitallogistics.model.entity.*;
 import com.example.digitallogistics.model.enums.OrderStatus;
 import com.example.digitallogistics.repository.*;
-import com.example.digitallogistics.service.AdvancedLogisticsService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

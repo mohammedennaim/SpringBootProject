@@ -5,7 +5,6 @@ import com.example.digitallogistics.config.TestSecurityConfig;
 import com.example.digitallogistics.model.dto.AuthRequest;
 import com.example.digitallogistics.model.dto.TokenRefreshRequest;
 import com.example.digitallogistics.model.entity.Client;
-import com.example.digitallogistics.model.entity.RefreshToken;
 import com.example.digitallogistics.model.entity.SalesOrder;
 import com.example.digitallogistics.model.enums.OrderStatus;
 import com.example.digitallogistics.model.enums.Role;
@@ -26,7 +25,6 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -34,17 +32,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-/**
- * Tests d'intégration pour l'authentification selon le cahier des charges
- * 
- * Scénarios testés :
- * - Login valide et invalide
- * - Accès avec token valide, sans token, token expiré
- * - Renouvellement via refresh token
- * - Rejet d'un refresh token révoqué
- * - Accès interdit selon rôle
- * - Refus d'accès aux ressources d'un autre client (ownership)
- */
+
 @SpringBootTest(
     classes = {LogisticsApiApplication.class, TestSecurityConfig.class},
     properties = {
