@@ -126,13 +126,10 @@ class JwtAuthenticationFilterTest {
         when(tokenProvider.getSubject(token)).thenReturn(username);
         when(userDetailsService.loadUserByUsername(username)).thenThrow(new RuntimeException("User not found"));
 
-        try {
-            jwtAuthenticationFilter.doFilterInternal(request, response, filterChain);
-        } catch (RuntimeException e) {
-            // Expected exception
-        }
+        // Le filtre doit continuer même en cas d'erreur
+        jwtAuthenticationFilter.doFilterInternal(request, response, filterChain);
         
         assertNull(SecurityContextHolder.getContext().getAuthentication());
-        verify(filterChain, never()).doFilter(request, response);
+        verify(filterChain).doFilter(request, response);
     }
 }

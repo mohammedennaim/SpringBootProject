@@ -21,6 +21,7 @@ import com.example.digitallogistics.model.dto.SalesOrderCreateDto;
 import com.example.digitallogistics.model.dto.SalesOrderLineCreateDto;
 import com.example.digitallogistics.model.entity.SalesOrder;
 import com.example.digitallogistics.model.mapper.ClientMapper;
+import com.example.digitallogistics.security.CustomUserDetailsService;
 import com.example.digitallogistics.service.SalesOrderService;
 import com.example.digitallogistics.util.JwtTokenProvider;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -43,6 +44,9 @@ class SalesOrderControllerTest {
 
     @MockBean
     private JwtTokenProvider jwtTokenProvider;
+
+    @MockBean
+    private CustomUserDetailsService customUserDetailsService;
 
     @Test
     void list_shouldReturnOrders() throws Exception {

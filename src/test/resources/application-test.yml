@@ -27,6 +27,13 @@ spring:
       repositories:
         enabled: false  # Désactiver Elasticsearch pour les tests d'intégration
 
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:8080/auth/realms/logistics-realm
+          jwk-set-uri: http://localhost:8080/auth/realms/logistics-realm/protocol/openid-connect/certs
+
 app:
   jwt:
     secret: TestSecretKeyForIntegrationTestsMustBeAtLeast32CharactersLong!
@@ -36,3 +43,6 @@ app:
 server:
   port: 0  # Port aléatoire pour éviter les conflits
 
+swagger:
+  server:
+    url: http://localhost:8093

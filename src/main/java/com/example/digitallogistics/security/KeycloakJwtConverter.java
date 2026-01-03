@@ -1,5 +1,6 @@
 package com.example.digitallogistics.security;
 
+import org.springframework.context.annotation.Profile;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
@@ -23,6 +24,7 @@ import java.util.stream.Collectors;
  * 2. Claim "realm_access.roles" : {"realm_access": {"roles": ["ADMIN", "USER"]}}
  */
 @Component
+@Profile("!test")  // Ne pas charger en mode test
 public class KeycloakJwtConverter implements Converter<Jwt, AbstractAuthenticationToken> {
 
     @Override

@@ -24,6 +24,7 @@ import com.example.digitallogistics.model.dto.ShipmentCreateDto;
 import com.example.digitallogistics.model.dto.ShipmentDto;
 import com.example.digitallogistics.model.dto.ShipmentStatusUpdateDto;
 import com.example.digitallogistics.model.enums.ShipmentStatus;
+import com.example.digitallogistics.security.CustomUserDetailsService;
 import com.example.digitallogistics.service.ShipmentService;
 import com.example.digitallogistics.util.JwtTokenProvider;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -43,6 +44,9 @@ class ShipmentControllerTest {
 
     @MockBean
     private JwtTokenProvider jwtTokenProvider;
+
+    @MockBean
+    private CustomUserDetailsService customUserDetailsService;
 
     @Test
     void getAllShipments_shouldReturnPage() throws Exception {
