@@ -15,18 +15,23 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
 import com.example.digitallogistics.model.dto.SalesOrderCreateDto;
 import com.example.digitallogistics.model.dto.SalesOrderLineCreateDto;
 import com.example.digitallogistics.model.entity.SalesOrder;
 import com.example.digitallogistics.model.mapper.ClientMapper;
+import com.example.digitallogistics.repository.UserRepository;
 import com.example.digitallogistics.security.CustomUserDetailsService;
 import com.example.digitallogistics.service.SalesOrderService;
 import com.example.digitallogistics.util.JwtTokenProvider;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-@WebMvcTest(SalesOrderController.class)
+@WebMvcTest(value = SalesOrderController.class, properties = {
+    "spring.autoconfigure.exclude=org.springframework.boot.autoconfigure.security.oauth2.resource.servlet.OAuth2ResourceServerAutoConfiguration"
+})
+@ActiveProfiles("test")
 @AutoConfigureMockMvc(addFilters = false)
 class SalesOrderControllerTest {
 
@@ -41,6 +46,9 @@ class SalesOrderControllerTest {
 
     @MockBean
     private ClientMapper clientMapper;
+
+    @MockBean
+    private UserRepository userRepository;
 
     @MockBean
     private JwtTokenProvider jwtTokenProvider;
@@ -101,6 +109,7 @@ class SalesOrderControllerTest {
         SalesOrder order = new SalesOrder();
         order.setId(id);
 
+        when(salesOrderService.findById(id)).thenReturn(Optional.of(order));
         when(salesOrderService.reserve(id)).thenReturn(order);
         when(salesOrderService.findLines(any())).thenReturn(List.of());
 
@@ -114,6 +123,7 @@ class SalesOrderControllerTest {
         SalesOrder order = new SalesOrder();
         order.setId(id);
 
+        when(salesOrderService.findById(id)).thenReturn(Optional.of(order));
         when(salesOrderService.cancel(id)).thenReturn(order);
         when(salesOrderService.findLines(any())).thenReturn(List.of());
 
@@ -126,6 +136,7 @@ class SalesOrderControllerTest {
         UUID id = UUID.randomUUID();
         SalesOrder order = new SalesOrder();
         order.setId(id);
+        when(salesOrderService.findById(id)).thenReturn(Optional.of(order));
         when(salesOrderService.ship(id)).thenReturn(order);
         when(salesOrderService.findLines(any())).thenReturn(List.of());
         mockMvc.perform(put("/api/sales-orders/" + id + "/ship"))
@@ -137,6 +148,7 @@ class SalesOrderControllerTest {
         UUID id = UUID.randomUUID();
         SalesOrder order = new SalesOrder();
         order.setId(id);
+        when(salesOrderService.findById(id)).thenReturn(Optional.of(order));
         when(salesOrderService.deliver(id)).thenReturn(order);
         when(salesOrderService.findLines(any())).thenReturn(List.of());
         mockMvc.perform(put("/api/sales-orders/" + id + "/deliver"))

@@ -18,18 +18,24 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
 import com.example.digitallogistics.model.dto.ShipmentCreateDto;
 import com.example.digitallogistics.model.dto.ShipmentDto;
 import com.example.digitallogistics.model.dto.ShipmentStatusUpdateDto;
 import com.example.digitallogistics.model.enums.ShipmentStatus;
+import com.example.digitallogistics.repository.UserRepository;
 import com.example.digitallogistics.security.CustomUserDetailsService;
+import com.example.digitallogistics.service.SalesOrderService;
 import com.example.digitallogistics.service.ShipmentService;
 import com.example.digitallogistics.util.JwtTokenProvider;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-@WebMvcTest(ShipmentController.class)
+@WebMvcTest(value = ShipmentController.class, properties = {
+    "spring.autoconfigure.exclude=org.springframework.boot.autoconfigure.security.oauth2.resource.servlet.OAuth2ResourceServerAutoConfiguration"
+})
+@ActiveProfiles("test")
 @AutoConfigureMockMvc(addFilters = false)
 class ShipmentControllerTest {
 
@@ -41,6 +47,12 @@ class ShipmentControllerTest {
 
     @MockBean
     private ShipmentService shipmentService;
+
+    @MockBean
+    private SalesOrderService salesOrderService;
+
+    @MockBean
+    private UserRepository userRepository;
 
     @MockBean
     private JwtTokenProvider jwtTokenProvider;
