@@ -225,13 +225,18 @@
         "http://13.60.41.134:8093/oauth2-redirect.html",
         "http://13.60.41.134:8093/swagger-ui/oauth2-redirect.html",
         "http://13.60.41.134:8093/swagger-ui.html",
-        "http://13.60.41.134:8093/*"
+        "http://13.60.41.134:8093/*",
+        "http://logistics-prod-api.duckdns.org:8093/oauth2-redirect.html",
+        "http://logistics-prod-api.duckdns.org:8093/swagger-ui/oauth2-redirect.html",
+        "http://logistics-prod-api.duckdns.org:8093/swagger-ui.html",
+        "http://logistics-prod-api.duckdns.org:8093/*"
       ],
       "webOrigins": [
         "http://localhost:3000",
         "http://localhost:4200",
         "http://localhost:8093",
-        "http://13.60.41.134:8093"
+        "http://13.60.41.134:8093",
+        "http://logistics-prod-api.duckdns.org:8093"
       ],
       "notBefore": 0,
       "bearerOnly": false,
