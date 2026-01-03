@@ -1,7 +1,6 @@
 package com.example.digitallogistics;
 
 import com.example.digitallogistics.config.TestSecurityConfig;
-import com.example.digitallogistics.security.SecurityConfig;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
