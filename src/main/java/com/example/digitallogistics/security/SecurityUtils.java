@@ -19,10 +19,31 @@ public class SecurityUtils {
      */
     public static Optional<String> getCurrentUserEmail() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication != null && authentication.getPrincipal() instanceof UserDetails) {
-            UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-            return Optional.of(userDetails.getUsername());
+        if (authentication == null) {
+            return Optional.empty();
         }
+
+        Object principal = authentication.getPrincipal();
+
+        if (principal instanceof UserDetails) {
+            return Optional.of(((UserDetails) principal).getUsername());
+        }
+
+        if (principal instanceof org.springframework.security.oauth2.jwt.Jwt) {
+            org.springframework.security.oauth2.jwt.Jwt jwt = (org.springframework.security.oauth2.jwt.Jwt) principal;
+            String email = null;
+            if (jwt.hasClaim("email")) {
+                email = jwt.getClaimAsString("email");
+            } else if (jwt.hasClaim("preferred_username")) {
+                email = jwt.getClaimAsString("preferred_username");
+            } else {
+                email = jwt.getSubject();
+            }
+            System.out.println("SecurityUtils: JWT Principal. Email/Sub: " + email);
+            return Optional.ofNullable(email);
+        }
+
+        System.out.println("SecurityUtils: Principal is " + principal.getClass().getName());
         return Optional.empty();
     }
 
@@ -31,7 +52,7 @@ public class SecurityUtils {
      */
     public static Optional<User> getCurrentUser(UserRepository userRepository) {
         return getCurrentUserEmail()
-            .flatMap(userRepository::findByEmail);
+                .flatMap(userRepository::findByEmail);
     }
 
     /**
@@ -39,8 +60,8 @@ public class SecurityUtils {
      */
     public static boolean isClient(UserRepository userRepository) {
         return getCurrentUser(userRepository)
-            .map(user -> user.getRole() == Role.CLIENT)
-            .orElse(false);
+                .map(user -> user.getRole() == Role.CLIENT)
+                .orElse(false);
     }
 
     /**
@@ -48,9 +69,9 @@ public class SecurityUtils {
      */
     public static Optional<UUID> getCurrentClientId(UserRepository userRepository) {
         return getCurrentUser(userRepository)
-            .filter(user -> user instanceof Client)
-            .filter(user -> user.getRole() == Role.CLIENT)
-            .map(User::getId);
+                .filter(user -> user instanceof Client)
+                .filter(user -> user.getRole() == Role.CLIENT)
+                .map(User::getId);
     }
 
     /**
@@ -58,8 +79,7 @@ public class SecurityUtils {
      */
     public static boolean isAdminOrManager(UserRepository userRepository) {
         return getCurrentUser(userRepository)
-            .map(user -> user.getRole() == Role.ADMIN || user.getRole() == Role.WAREHOUSE_MANAGER)
-            .orElse(false);
+                .map(user -> user.getRole() == Role.ADMIN || user.getRole() == Role.WAREHOUSE_MANAGER)
+                .orElse(false);
     }
 }
-

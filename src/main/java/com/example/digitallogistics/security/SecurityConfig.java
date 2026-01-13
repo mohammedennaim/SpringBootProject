@@ -28,7 +28,7 @@ import jakarta.servlet.http.HttpServletResponse;
 
 @Configuration
 @EnableMethodSecurity
-@Profile("!test") 
+@Profile("!test")
 public class SecurityConfig {
 
     private final KeycloakJwtConverter keycloakJwtConverter;
@@ -40,26 +40,24 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-            .csrf(AbstractHttpConfigurer::disable)
-            .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/github-webhook/**").permitAll()
-                .requestMatchers("/api/auth/**").permitAll() // Garder pour login initial si nécessaire
-                .requestMatchers("/api/test").permitAll()
-                .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/swagger-ui/index.html", "/v3/api-docs/**", "/swagger-resources/**", "/webjars/**", "/oauth2-redirect.html").permitAll()
-                .requestMatchers("/api/**").authenticated()
-                .anyRequest().authenticated()
-            )
-            .oauth2ResourceServer(oauth2 -> oauth2
-                .jwt(jwt -> jwt
-                    .jwtAuthenticationConverter(keycloakJwtConverter)
-                )
-            )
-            .exceptionHandling(ex -> ex
-                .authenticationEntryPoint(authenticationEntryPoint())
-            )
-            .anonymous(anonymous -> anonymous.disable());
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                .csrf(AbstractHttpConfigurer::disable)
+                .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/api/github-webhook/**").permitAll()
+                        .requestMatchers("/api/auth/**").permitAll() // Garder pour login initial si nécessaire
+                        .requestMatchers("/api/test").permitAll()
+                        .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/swagger-ui/index.html",
+                                "/v3/api-docs/**", "/swagger-resources/**", "/webjars/**", "/oauth2-redirect.html")
+                        .permitAll()
+                        .requestMatchers("/api/**").authenticated()
+                        .anyRequest().authenticated())
+                .oauth2ResourceServer(oauth2 -> oauth2
+                        .jwt(jwt -> jwt
+                                .jwtAuthenticationConverter(keycloakJwtConverter)))
+                .exceptionHandling(ex -> ex
+                        .authenticationEntryPoint(authenticationEntryPoint()))
+                .anonymous(anonymous -> anonymous.disable());
 
         return http.build();
     }
@@ -72,7 +70,7 @@ public class SecurityConfig {
         configuration.addAllowedHeader("*"); // Permettre tous les headers
         configuration.setAllowCredentials(true); // Permettre les credentials (cookies, auth headers)
         configuration.setMaxAge(3600L); // Cache preflight requests pendant 1 heure
-        
+
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
@@ -88,13 +86,13 @@ public class SecurityConfig {
                     AuthenticationException authException) throws IOException, ServletException {
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                 response.setContentType("application/json;charset=UTF-8");
-                
+
                 java.util.Map<String, Object> body = new java.util.HashMap<>();
                 body.put("error", "authentication_failed");
                 body.put("message", "Authentication required");
                 body.put("timestamp", System.currentTimeMillis());
                 body.put("path", request.getRequestURI());
-                
+
                 response.getWriter().write(objectMapper.writeValueAsString(body));
             }
         };
@@ -105,9 +103,9 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
 
-
     @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration)
+            throws Exception {
         return authenticationConfiguration.getAuthenticationManager();
     }
 }

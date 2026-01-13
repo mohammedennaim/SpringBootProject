@@ -15,14 +15,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-/**
- * Convertit les JWT Keycloak en Authentication Spring Security.
- * Extrait les rôles depuis le claim "roles" ou "realm_access.roles" et les préfixe avec "ROLE_".
- * 
- * Ce converter gère deux formats de rôles Keycloak :
- * 1. Claim direct "roles" : ["ADMIN", "USER"]
- * 2. Claim "realm_access.roles" : {"realm_access": {"roles": ["ADMIN", "USER"]}}
- */
 @Component
 @Profile("!test")  // Ne pas charger en mode test
 public class KeycloakJwtConverter implements Converter<Jwt, AbstractAuthenticationToken> {

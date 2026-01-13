@@ -27,8 +27,9 @@ public class JwtTokenProvider {
     private final Map<String, Date> revokedTokens = new ConcurrentHashMap<>();
 
     public JwtTokenProvider(@Value("${app.jwt.secret:defaultSecretKeyChangeMe}") String secret,
-                            @Value("${app.jwt.expiration-ms:3600000}") long validityInMilliseconds) {
-        byte[] bytes = secret != null ? secret.getBytes(StandardCharsets.UTF_8) : "defaultSecretKeyChangeMe".getBytes(StandardCharsets.UTF_8);
+            @Value("${app.jwt.expiration-ms:3600000}") long validityInMilliseconds) {
+        byte[] bytes = secret != null ? secret.getBytes(StandardCharsets.UTF_8)
+                : "defaultSecretKeyChangeMe".getBytes(StandardCharsets.UTF_8);
         if (bytes.length < 32) {
             byte[] padded = new byte[32];
             for (int i = 0; i < 32; i++) {
@@ -51,25 +52,26 @@ public class JwtTokenProvider {
                 .setSubject(subject)
                 .setIssuedAt(now)
                 .setExpiration(expiry)
-        .signWith(key, SignatureAlgorithm.HS256)
+                .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
     }
 
     public String createToken(String subject, Collection<? extends GrantedAuthority> authorities) {
-    Date now = new Date();
-    Date expiry = new Date(now.getTime() + validityInMilliseconds);
+        Date now = new Date();
+        Date expiry = new Date(now.getTime() + validityInMilliseconds);
 
-    String roles = authorities == null ? "" : authorities.stream()
-        .map(GrantedAuthority::getAuthority)
-        .collect(Collectors.joining(","));
+        String roles = authorities == null ? ""
+                : authorities.stream()
+                        .map(GrantedAuthority::getAuthority)
+                        .collect(Collectors.joining(","));
 
-    return Jwts.builder()
-        .setSubject(subject)
-        .claim("roles", roles)
-        .setIssuedAt(now)
-        .setExpiration(expiry)
-        .signWith(key, SignatureAlgorithm.HS256)
-        .compact();
+        return Jwts.builder()
+                .setSubject(subject)
+                .claim("roles", roles)
+                .setIssuedAt(now)
+                .setExpiration(expiry)
+                .signWith(key, SignatureAlgorithm.HS256)
+                .compact();
     }
 
     public boolean validateToken(String token) {
@@ -90,7 +92,8 @@ public class JwtTokenProvider {
 
     public void revokeToken(String token) {
         try {
-            Date expiry = Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).getBody().getExpiration();
+            Date expiry = Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).getBody()
+                    .getExpiration();
             revokedTokens.put(token, expiry == null ? new Date() : expiry);
         } catch (Exception ex) {
             revokedTokens.put(token, new Date());
@@ -109,4 +112,3 @@ public class JwtTokenProvider {
         return createToken(username);
     }
 }
-
