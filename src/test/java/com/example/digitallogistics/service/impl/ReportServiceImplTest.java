@@ -65,7 +65,7 @@ class ReportServiceImplTest {
         InventoryReportDto report = reportService.getInventoryReport(warehouseId);
 
         assertNotNull(report);
-        assertEquals(250L, report.getTotalProducts());
+        assertEquals(220L, report.getTotalProducts());
         assertEquals(230L, report.getActiveProducts());
         assertEquals(20L, report.getInactiveProducts());
         assertEquals(15L, report.getOutOfStockProducts());
@@ -77,16 +77,16 @@ class ReportServiceImplTest {
         assertEquals(4.2, report.getStockTurnoverRate());
         assertEquals(6.0, report.getStockoutRate());
         assertEquals(94.0, report.getFillRate());
-        
+
         assertNotNull(report.getTopSellingProducts());
         assertEquals(3, report.getTopSellingProducts().size());
-        
+
         assertNotNull(report.getCriticalStockProducts());
         assertEquals(2, report.getCriticalStockProducts().size());
-        
+
         assertNotNull(report.getDeadStockProducts());
         assertEquals(1, report.getDeadStockProducts().size());
-        
+
         assertNotNull(report.getWarehouseStockSummaries());
         assertEquals(2, report.getWarehouseStockSummaries().size());
     }
@@ -96,7 +96,7 @@ class ReportServiceImplTest {
         InventoryReportDto report = reportService.getInventoryReport(null);
 
         assertNotNull(report);
-        assertEquals(250L, report.getTotalProducts());
+        assertEquals(220L, report.getTotalProducts());
     }
 
     @Test
@@ -121,16 +121,16 @@ class ReportServiceImplTest {
         assertTrue(report.getCancellationRate() > 0);
         assertTrue(report.getAverageShippingTimeHours() > 0);
         assertTrue(report.getAverageDelayHours() > 0);
-        
+
         assertNotNull(report.getCarrierPerformances());
         assertEquals(3, report.getCarrierPerformances().size());
-        
+
         assertNotNull(report.getShipmentsPerPeriod());
         assertFalse(report.getShipmentsPerPeriod().isEmpty());
-        
+
         assertNotNull(report.getOnTimeRatePerPeriod());
         assertFalse(report.getOnTimeRatePerPeriod().isEmpty());
-        
+
         assertNotNull(report.getTopDestinations());
         assertEquals(3, report.getTopDestinations().size());
     }

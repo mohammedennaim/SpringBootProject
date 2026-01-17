@@ -21,7 +21,7 @@ public class SwaggerConfig {
         @Value("${server.port:8093}")
         private String serverPort;
 
-        @Value("${spring.security.oauth2.resourceserver.jwt.issuer-uri:http://localhost:8080/auth/realms/logistics-realm}")
+        @Value("${spring.security.oauth2.resourceserver.jwt.issuer-uri:http://localhost:8080/realms/logistics-realm}")
         private String issuerUri;
 
         @Value("${swagger.server.url:http://localhost:8093}")

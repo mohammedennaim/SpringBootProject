@@ -40,10 +40,9 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          # L'URL d'identification du serveur Keycloak (avec /auth car KC_HTTP_RELATIVE_PATH=/auth)
-          # Utilise KEYCLOAK_URL si défini, sinon localhost pour développement local
-          # Note: Le JwtDecoderConfig utilise keycloak:8080 pour l'accès depuis Docker
-          issuer-uri: ${KEYCLOAK_ISSUER_URI:http://localhost:8080/auth/realms/logistics-realm}
+          # L'URL d'identification du serveur Keycloak (SANS /auth pour Keycloak 17+)
+          # Keycloak 24 n'utilise plus le préfixe /auth
+          issuer-uri: ${KEYCLOAK_ISSUER_URI:http://localhost:8080/realms/logistics-realm}
           # L'URL pour récupérer les clés de validation (JWKS) - géré par JwtDecoderConfig
           # jwk-set-uri est configuré automatiquement dans JwtDecoderConfig pour utiliser keycloak:8080
 

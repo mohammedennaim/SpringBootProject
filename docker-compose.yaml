@@ -311,7 +311,6 @@ services:
     environment:
       KEYCLOAK_ADMIN: admin
       KEYCLOAK_ADMIN_PASSWORD: admin
-      KC_HTTP_RELATIVE_PATH: /auth
       KC_DB: dev-file
       KC_HEALTH_ENABLED: "true"
       KC_METRICS_ENABLED: "false"
@@ -324,6 +323,7 @@ services:
       - "${KEYCLOAK_PORT:-8080}:8080"
     volumes:
       - ./keycloak-config/realm-export.json:/opt/keycloak/data/import/realm-export.json:ro
+      - keycloak_data:/opt/keycloak/data
     depends_on:
       postgres:
         condition: service_healthy
@@ -331,11 +331,11 @@ services:
       - logistics-net
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "bash", "-c", "exec 3<>/dev/tcp/localhost/8080"]
-      interval: 5s # Réduit de 30s à 5s pour débloquer app-dev plus vite
+      test: ["CMD-SHELL", "exec 3<>/dev/tcp/localhost/8080 || exit 1"]
+      interval: 10s
       timeout: 5s
-      retries: 20
-      start_period: 20s
+      retries: 30
+      start_period: 180s
     deploy:
       resources:
         limits:
@@ -354,7 +354,8 @@ services:
       SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-postgres}
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-123456}
       DB_PASSWORD: ${POSTGRES_PASSWORD:-123456}
-      KEYCLOAK_ISSUER_URI: ${KEYCLOAK_ISSUER_URI:-http://localhost:8080/auth/realms/logistics-realm}
+      # Keycloak 17+ n'utilise plus /auth
+      KEYCLOAK_ISSUER_URI: ${KEYCLOAK_ISSUER_URI:-http://localhost:8080/realms/logistics-realm}
       KEYCLOAK_JWKS_HOST: ${KEYCLOAK_JWKS_HOST:-keycloak:8080}
       SWAGGER_SERVER_URL: ${SWAGGER_SERVER_URL:-http://localhost:8093}
       ELASTICSEARCH_HOST: elasticsearch:9200
@@ -370,7 +371,7 @@ services:
       postgres:
         condition: service_healthy
       keycloak:
-        condition: service_healthy
+        condition: service_started
     # Commande identique mais bénéficiera du MAVEN_OPTS augmenté
     command: ["./mvnw", "spring-boot:run", "-DskipTests", "-Dmaven.test.skip=true", "-Dspring-boot.run.jvmArguments=-Xmx512m -XX:+TieredCompilation -XX:TieredStopAtLevel=1"]
     ports:
@@ -380,10 +381,10 @@ services:
     restart: unless-stopped
     healthcheck:
       test: ["CMD-SHELL", "curl -sf http://localhost:${SERVER_PORT:-8093}/actuator/health || exit 1"]
-      interval: 10s
+      interval: 15s
       timeout: 5s
-      retries: 10
-      start_period: 30s
+      retries: 8
+      start_period: 90s
 
   # ==========================================
   # MONITORING (Profil: monitoring)
@@ -543,6 +544,7 @@ services:
 volumes:
   pg_data:
   pgadmin_data:
+  keycloak_data:
   sonar_data:
   sonar_extensions:
   sonar_logs:
