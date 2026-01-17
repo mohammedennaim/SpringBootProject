@@ -75,6 +75,7 @@ springdoc:
   swagger-ui:
     enabled: true
     path: /swagger-ui.html
+    custom-script-url: /swagger-ui/swagger-custom.js
     # Configuration OAuth2 pour Swagger UI
     oauth:
       client-id: logistics-frontend

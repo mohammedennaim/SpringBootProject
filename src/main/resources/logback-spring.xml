@@ -29,7 +29,8 @@
             </roundRobin>
         </connectionStrategy>
         <reconnectionDelay>1 second</reconnectionDelay>
-        <queueSize>512</queueSize>
+        <!-- <queueSize> is deprecated; use <ringBufferSize> -->
+        <ringBufferSize>512</ringBufferSize>
     </appender>
 
     <!-- File Appender (logs dans un fichier - optionnel) -->
@@ -49,7 +50,7 @@
     <springProfile name="dev,default">
         <root level="INFO">
             <appender-ref ref="CONSOLE"/>
-            <appender-ref ref="LOGSTASH"/>
+            <!-- Logstash disabled in dev to avoid connection errors when Logstash is not available -->
         </root>
         <logger name="com.example.digitallogistics" level="DEBUG"/>
         <logger name="org.springframework.web" level="DEBUG"/>

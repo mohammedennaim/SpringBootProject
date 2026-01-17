@@ -34,11 +34,22 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.http.HttpStatus;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.net.URI;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @RestController
 @RequestMapping("/api/auth")
 @Tag(name = "Authentication", description = "API d'authentification (login, register, logout, refresh token)")
 public class AuthController {
+
+    private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
 
     private final AuthenticationManager authenticationManager;
     private final JwtTokenProvider tokenProvider;
@@ -55,6 +66,9 @@ public class AuthController {
         this.userService = userService;
         this.refreshTokenService = refreshTokenService;
     }
+
+    @Value("${spring.security.oauth2.resourceserver.jwt.issuer-uri:http://localhost:8080/auth/realms/logistics-realm}")
+    private String issuerUri;
 
     @PostMapping("/login")
     @Operation(summary = "Connexion", description = "Authentifie un utilisateur et retourne un access token et un refresh token")
@@ -169,6 +183,45 @@ public class AuthController {
 
         return ResponseEntity.noContent().build();
     }
+
+        @GetMapping("/logout/keycloak")
+        @Operation(summary = "Keycloak logout", description = "Redirige vers l'endpoint de logout Keycloak pour terminer la session côté Keycloak")
+        public ResponseEntity<Void> keycloakLogout(
+                                                                                             @RequestParam(required = false, name = "idTokenHint") String idTokenHint,
+                                                                                             @RequestParam(required = false, name = "id_token_hint") String id_token_hint,
+                                                                                             @RequestParam(required = false, name = "id_token") String id_token,
+                                                                                             @RequestParam(required = false, name = "redirectUri") String redirectUri,
+                                                                                             @RequestParam(required = false, name = "post_logout_redirect_uri") String post_logout_redirect_uri) {
+                String normalizedIssuer = issuerUri.endsWith("/") ? issuerUri.substring(0, issuerUri.length() - 1) : issuerUri;
+                String logoutEndpoint = normalizedIssuer + "/protocol/openid-connect/logout";
+
+                // Prefer explicit post_logout_redirect_uri, then redirectUri
+                String finalRedirect = post_logout_redirect_uri != null && !post_logout_redirect_uri.isBlank() ? post_logout_redirect_uri : redirectUri;
+
+                // Pick the id token from multiple possible param names
+                String effectiveIdToken = null;
+                if (idTokenHint != null && !idTokenHint.isBlank()) effectiveIdToken = idTokenHint;
+                else if (id_token_hint != null && !id_token_hint.isBlank()) effectiveIdToken = id_token_hint;
+                else if (id_token != null && !id_token.isBlank()) effectiveIdToken = id_token;
+
+                logger.info("Keycloak logout requested; idTokenHint present={} redirect={}", effectiveIdToken != null, finalRedirect);
+
+                StringBuilder sb = new StringBuilder(logoutEndpoint);
+                boolean first = true;
+                if (effectiveIdToken != null && !effectiveIdToken.isBlank()) {
+                        sb.append(first ? "?" : "&")
+                            .append("id_token_hint=")
+                            .append(URLEncoder.encode(effectiveIdToken, StandardCharsets.UTF_8));
+                        first = false;
+                }
+                if (finalRedirect != null && !finalRedirect.isBlank()) {
+                        sb.append(first ? "?" : "&")
+                            .append("post_logout_redirect_uri=")
+                            .append(URLEncoder.encode(finalRedirect, StandardCharsets.UTF_8));
+                }
+
+                return ResponseEntity.status(HttpStatus.FOUND).location(URI.create(sb.toString())).build();
+        }
 
     @PostMapping("/refreshtoken")
     @Operation(summary = "Rafraîchir le token", description = "Génère un nouvel access token et un nouveau refresh token à partir d'un refresh token valide")

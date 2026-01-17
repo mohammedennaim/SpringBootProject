@@ -36,7 +36,8 @@ public class SwaggerConfig {
                 String normalizedIssuer = issuerUri.endsWith("/") ? issuerUri.substring(0, issuerUri.length() - 1) : issuerUri;
                 URI issuer = URI.create(normalizedIssuer);
                 String authBase = issuer.toString();
-                String authorizationUrl = authBase + "/protocol/openid-connect/auth";
+                // Ajouter prompt=login pour forcer la ré-authentification Keycloak (évite la réutilisation SSO automatique)
+                String authorizationUrl = authBase + "/protocol/openid-connect/auth?prompt=login";
                 String tokenUrl = authBase + "/protocol/openid-connect/token";
         
         Components components = new Components();
